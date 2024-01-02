@@ -1,0 +1,22 @@
+# Control nodes
+k8s_masters:
+  hosts:
+    k8s1-rhel-master1.fillswim.local:
+      ansible_host: 192.168.2.211
+    k8s1-rhel-master2.fillswim.local:
+      ansible_host: 192.168.2.212
+    k8s1-rhel-master3.fillswim.local:
+      ansible_host: 192.168.2.213
+
+# Worker nodes
+k8s_workers:
+  hosts:
+    k8s1-rhel-worker1.fillswim.local:
+      ansible_host: 192.168.2.214
+    k8s1-rhel-worker2.fillswim.local:
+      ansible_host: 192.168.2.215
+
+k8s1_rhel_cluster:
+  children:
+    k8s_masters:
+    k8s_workers:

@@ -1,0 +1,22 @@
+# Control nodes
+k8s_masters:                            # Не менять, используется в ролях
+  hosts:
+    k8s2-rhel-master1.fillswim.local:
+      ansible_host: 192.168.2.221
+    k8s2-rhel-master2.fillswim.local:
+      ansible_host: 192.168.2.222
+    k8s2-rhel-master3.fillswim.local:
+      ansible_host: 192.168.2.223
+
+# Worker nodes
+k8s_workers:                            # Не менять, используется в ролях
+  hosts:
+    k8s2-rhel-worker1.fillswim.local:
+      ansible_host: 192.168.2.224
+    k8s2-rhel-worker2.fillswim.local:
+      ansible_host: 192.168.2.225
+
+k8s2_rhel_cluster:                      # Можно менять, после этого создать файл в group_vars
+  children:
+    k8s_masters:
+    k8s_workers:
