@@ -1,0 +1,9 @@
+---
+
+# ansible-playbook -i hosts_k8s_alma.yaml Roles_01-Prepare-VM-for-K8s.yaml -b
+
+- name: Prepare VM for K8s
+  hosts: "all"
+
+  roles:
+    - role: 01-preparation-k8s

@@ -1,0 +1,7 @@
+---
+
+- name: Reset Kubeadm Cluster
+  hosts: "all"
+
+  roles:
+    - role: Reset-Kubeadm-Cluster

@@ -1,0 +1,8 @@
+---
+- name: Delete Node
+  order: sorted             # Выполняется на хостах в алфавитном порядке
+  serial: 1                 # Выполняется только на одном хосту одновременно
+  hosts: "all"
+
+  roles:
+    - role: 06-Delete-Node

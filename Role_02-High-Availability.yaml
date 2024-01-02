@@ -1,0 +1,7 @@
+---
+
+- name: High Availability
+  hosts: k8s_masters
+
+  roles:
+    - role: 02-High-Availability

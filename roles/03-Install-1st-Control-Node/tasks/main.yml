@@ -1,0 +1,140 @@
+---
+# tasks file for 03-Install-1st-Master-Node
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================== Checking that the cluster has already been created ======================
+
+- name: Checking that the cluster has already been created
+  ansible.builtin.stat:
+    path: "/etc/kubernetes/pki/ca.key"
+  register: kubeadm_ca
+
+- ansible.builtin.meta: end_play
+  when: kubeadm_ca.stat.exists
+
+# ==================================== Apply kubeadm-config.yaml ===================================
+
+- name: Создание папки /root/kubeadm
+  ansible.builtin.file:
+    path: /root/kubeadm
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy kubeadm-config.yaml
+  become: true
+  ansible.builtin.template:
+    src: kubeadm-config.yaml.j2
+    dest: /root/kubeadm/kubeadm-config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Kubeadm Init
+  ansible.builtin.shell: kubeadm init --config /root/kubeadm/kubeadm-config.yaml
+  register: kubeadm_init_result
+  notify:
+    - Restart kubelet
+
+- name: Вывод результатов работы Kubeadm Init
+  ansible.builtin.debug:
+    var: kubeadm_init_result
+
+- name: Создание папки /root/.kube
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy /etc/kubernetes/admin.conf to /root/.kube/config
+  become: true
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0600"
+
+# ======================================= CNI Driver (Calico) ======================================
+
+- name: Install pip for RedHat
+  when: ansible_os_family == "RedHat"
+  become: true
+  ansible.builtin.dnf:
+    name: python3-pip
+    state: present
+
+- name: Install pip for Ubuntu
+  when: ansible_os_family == "Ubuntu"
+  become: true
+  ansible.builtin.apt:
+    name: python3-pip
+    state: present
+
+- name: Install pre-requisites for kubernetes.core.k8s
+  ansible.builtin.pip:
+    name:
+      - pyyaml
+      - kubernetes
+      - jsonpatch
+
+- name: Download Tigera Calico operator
+  ansible.builtin.get_url:
+    url: "{{ calico_operator_link }}"
+    dest: ~/download/tigera-operator.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply Tigera Calico operator
+  kubernetes.core.k8s:
+    src: ~/download/tigera-operator.yaml
+    state: present
+
+- name: Copy calico-install.yaml
+  become: true
+  ansible.builtin.template:
+    src: calico-install.yaml.j2
+    dest: ~/kubeadm/calico-install.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply Calico
+  kubernetes.core.k8s:
+    src: ~/kubeadm/calico-install.yaml
+    state: present
+  notify:
+    - Restart kubelet
+
+# ========================================== NodeLocalDNS ==========================================
+
+- name: Copy nodelocaldns-daemonset.yaml
+  become: true
+  ansible.builtin.template:
+    src: nodelocaldns-daemonset.yaml.j2
+    dest: ~/kubeadm/nodelocaldns-daemonset.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply nodelocaldns-daemonset.yaml
+  kubernetes.core.k8s:
+    src: ~/kubeadm/nodelocaldns-daemonset.yaml
+    state: present
+
+# ============================================= Reboot =============================================
+
+- name: Reboot
+  throttle: 1
+  become: true
+  ansible.builtin.reboot:
