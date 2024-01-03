@@ -32,7 +32,7 @@
   ansible.builtin.debug:
     var: future_k8s_version
 
-# ======================================= Block on Master[1] =======================================
+# ========================================= Update cluster =========================================
 
 - name: Block on the 1-st Master
   become: true
@@ -40,14 +40,56 @@
     - node_k8s_current_version != future_k8s_version                # Выполняется, исли текущая версия отличается от желаемой
   block:
 
-    - name: Ping 1-st Master
+    # ========================== Get join_path ==========================
+
+    - name: Update kubeadm, kubelet and kubectl
+      when: ansible_os_family == "RedHat"
+      ansible.builtin.yum:
+        name: "{{ packages }}"
+        disable_excludes: all
+        exclude: kubernetes
+        state: latest
+      vars:
+        packages:
+          - kubeadm-{{ kubernetes_minor_version }}-*
+          - kubelet-{{ kubernetes_minor_version }}-*
+          - kubectl-{{ kubernetes_minor_version }}-*
+
+    # =========================== Drain node ============================
+
+    - name: Drain {{ inventory_hostname }}
+      delegate_to: "{{ groups['k8s_masters'][0] }}"
+      ansible.builtin.shell: |
+        kubectl drain {{ inventory_hostname }} --ignore-daemonsets
+
+    # ========================= Kubeadm update ==========================
+
+    - name: Update {{ inventory_hostname }}
       become: true
-      ansible.builtin.ping:
+      ansible.builtin.shell: |
+        kubeadm upgrade apply {{ future_k8s_version }} -y
       when:
         - inventory_hostname == groups['k8s_masters'][0]            # Выполняется только на 1-м Мастере
     
-    - name: Ping another Masters
+    - name: Update {{ inventory_hostname }}
       become: true
-      ansible.builtin.ping:
+      ansible.builtin.shell: |
+        kubeadm upgrade node
       when:
-        - inventory_hostname not in groups['k8s_masters'][0]        # Выполняется только не на 1-м Мастере
+        - inventory_hostname not in groups['k8s_masters'][0]        # Выполняется на всех нодах кроме 1-го Мастера
+
+    # ========================= Restart kubelet =========================
+
+    - name: Restart kubelet
+      become: true
+      ansible.builtin.systemd_service:
+        state: restarted
+        daemon_reload: true
+        name: kubelet
+
+    # ========================== Uncordon node ==========================
+
+    - name: Uncordon {{ inventory_hostname }}
+      delegate_to: "{{ groups['k8s_masters'][0] }}"
+      ansible.builtin.shell: |
+        kubectl uncordon {{ inventory_hostname }}
