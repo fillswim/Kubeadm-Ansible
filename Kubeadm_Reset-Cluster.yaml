@@ -4,4 +4,4 @@
   hosts: "all"
 
   roles:
-    - role: Reset-Kubeadm-Cluster
+    - role: Kubeadm-Reset-Cluster

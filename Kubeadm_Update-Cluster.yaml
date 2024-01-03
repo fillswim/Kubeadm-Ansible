@@ -1,0 +1,7 @@
+---
+
+- name: Update Cluster K8s with Kubeadm
+  hosts: "all"
+
+  roles:
+    - role: Kubeadm-Update-Cluster

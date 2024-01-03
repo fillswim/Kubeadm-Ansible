@@ -1,0 +1,25 @@
+---
+
+# ansible-playbook -i inventory/k8s1_rhel.yaml Kubeadm_Create-Cluster.yaml -b
+
+- name: Prepare VM for K8s
+  hosts: "all"
+  roles:
+    - role: 01-preparation-k8s
+
+- name: High Availability
+  hosts: k8s_masters
+  roles:
+    - role: 02-High-Availability
+
+- name: Install 1st Control Node
+  hosts: k8s_masters[0]
+  roles:
+    - role: 03-Install-1st-Control-Node
+
+- name: Adding-Other-Control-Nodes
+  serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
+  order: sorted                       # Ноды будут выбираться в алфавитном порядке
+  hosts: all
+  roles:
+    - role: 04-Adding-Other-Nodes
