@@ -1,2 +1,53 @@
 ---
 # tasks file for Kubeadm-Update-Cluster
+
+
+# ============================================== Ping ==============================================
+
+#- name: Ping
+#  become: true
+#  ansible.builtin.ping:
+
+# ======================================= Get node k8s version =====================================
+
+- name: Check node k8s version
+  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  ansible.builtin.shell: |
+    kubectl get nodes {{ inventory_hostname }} -o=jsonpath='{.status.nodeInfo.kubeletVersion}'
+  register: node_k8s_current_version
+
+- name: Create variable node_k8s_current_version
+  ansible.builtin.set_fact:
+    node_k8s_current_version: "{{ node_k8s_current_version.stdout }}"
+
+- name: Show node_k8s_current_version
+  ansible.builtin.debug:
+    var: node_k8s_current_version
+
+- name: Create variable future_k8s_version
+  ansible.builtin.set_fact:
+    future_k8s_version: "{{ 'v' + kubernetes_minor_version }}"
+
+- name: Show future_k8s_version
+  ansible.builtin.debug:
+    var: future_k8s_version
+
+# ======================================= Block on Master[1] =======================================
+
+- name: Block on the 1-st Master
+  become: true
+  when:
+    - node_k8s_current_version != future_k8s_version                # Выполняется, исли текущая версия отличается от желаемой
+  block:
+
+    - name: Ping 1-st Master
+      become: true
+      ansible.builtin.ping:
+      when:
+        - inventory_hostname == groups['k8s_masters'][0]            # Выполняется только на 1-м Мастере
+    
+    - name: Ping another Masters
+      become: true
+      ansible.builtin.ping:
+      when:
+        - inventory_hostname not in groups['k8s_masters'][0]        # Выполняется только не на 1-м Мастере

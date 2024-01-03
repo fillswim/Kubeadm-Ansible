@@ -1,6 +1,8 @@
 ---
 
 - name: Update Cluster K8s with Kubeadm
+  serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
+  order: sorted                       # Ноды будут выбираться в алфавитном порядке
   hosts: "all"
 
   roles:
