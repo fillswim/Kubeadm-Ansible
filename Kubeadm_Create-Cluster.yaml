@@ -33,3 +33,8 @@
   hosts: k8s_masters[0]
   roles:
     - role: Install-MetalLB
+
+- name: Install Helm
+  hosts: k8s_masters
+  roles:
+    - role: Install-Helm
