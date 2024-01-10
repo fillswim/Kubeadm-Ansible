@@ -38,3 +38,6 @@ nodelocaldns_local_ip:          169.254.25.10
 # CNI Driver (Calico)
 calico_operator_version:        3.26.3
 calico_operator_link:           "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/tigera-operator.yaml"
+
+# calicoctl
+calicoctl_link:                 "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/calicoctl.yaml"

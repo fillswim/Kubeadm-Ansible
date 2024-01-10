@@ -1,0 +1,38 @@
+---
+# tasks file for Install-Calicoctl
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ================================= Checking pod calicoctl exists ==================================
+
+- name: Checking that pod calicoctl exists
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get pods -A | grep calicoctl
+  register: checking_pod_calicoctl_exists_output
+
+#- name: Show all_nodes
+#  ansible.builtin.debug:
+#    var: checking_pod_calicoctl_exists_output
+
+# ======================================== Install calicoctl =======================================
+
+- name: Download calicoctl.yaml
+  ansible.builtin.get_url:
+    url: "{{ calicoctl_link }}"
+    dest: ~/download/calicoctl.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install calicoctl
+  kubernetes.core.k8s:
+    src: ~/download/calicoctl.yaml
+    state: present
+  register: install_calicoctl_output
+  when: checking_pod_calicoctl_exists_output.stdout == ""

@@ -1,0 +1,24 @@
+# Control nodes
+k8s1_alma_masters:
+  hosts:
+    k8s-alma-master1.fillswim.local:
+      ansible_host: 192.168.2.201
+    k8s-alma-master2.fillswim.local:
+      ansible_host: 192.168.2.202
+    k8s-alma-master3.fillswim.local:
+      ansible_host: 192.168.2.203
+
+# Worker nodes
+k8s1_alma_workers:
+  hosts:
+    k8s-alma-worker1.fillswim.local:
+      ansible_host: 192.168.2.204
+    k8s-alma-worker2.fillswim.local:
+      ansible_host: 192.168.2.205
+    k8s-alma-worker3.fillswim.local:
+      ansible_host: 192.168.2.206
+
+k8s1_alma_cluster:
+  children:
+    k8s1_alma_masters:
+    k8s1_alma_workers:
