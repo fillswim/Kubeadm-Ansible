@@ -23,3 +23,13 @@
   hosts: all
   roles:
     - role: 04-Adding-Other-Nodes
+
+- name: Install calicoctl
+  hosts: k8s_masters[0]
+  roles:
+    - role: Install-Calicoctl
+
+- name: Install MetalLB
+  hosts: k8s_masters[0]
+  roles:
+    - role: Install-MetalLB

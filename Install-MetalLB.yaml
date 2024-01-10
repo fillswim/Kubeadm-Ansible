@@ -1,0 +1,6 @@
+---
+- name: Install MetalLB
+  hosts: k8s_masters[0]
+
+  roles:
+    - role: Install-MetalLB

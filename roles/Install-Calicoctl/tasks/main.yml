@@ -16,10 +16,6 @@
     kubectl get pods -A | grep calicoctl
   register: checking_pod_calicoctl_exists_output
 
-#- name: Show all_nodes
-#  ansible.builtin.debug:
-#    var: checking_pod_calicoctl_exists_output
-
 # ======================================== Install calicoctl =======================================
 
 - name: Download calicoctl.yaml
@@ -34,5 +30,4 @@
   kubernetes.core.k8s:
     src: ~/download/calicoctl.yaml
     state: present
-  register: install_calicoctl_output
   when: checking_pod_calicoctl_exists_output.stdout == ""

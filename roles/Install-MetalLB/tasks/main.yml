@@ -1,0 +1,67 @@
+---
+# tasks file for Install-MetalLB
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ========================================= Install MetalLB ========================================
+
+- name: Создание папки ~/metallb
+  ansible.builtin.file:
+    path: ~/metallb
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Download metallb-native.yaml
+  ansible.builtin.get_url:
+    url: "{{ metallb_link }}"
+    dest: ~/metallb/metallb-native.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install MetalLB
+  kubernetes.core.k8s:
+    src: ~/metallb/metallb-native.yaml
+    state: present
+
+# ================== Install IPAddressPool ==================
+
+- name: Pause for 30 seconds
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Copy MetalLB_IPAddressPool.yaml
+  become: true
+  ansible.builtin.template:
+    src: MetalLB_IPAddressPool.yaml.j2
+    dest: ~/metallb/MetalLB_IPAddressPool.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply AddressPool
+  kubernetes.core.k8s:
+    src: ~/metallb/MetalLB_IPAddressPool.yaml
+    state: present
+
+# ================= Install L2Advertisement =================
+
+- name: Скопировать MetalLB_L2Advertisement.yaml
+  become: true
+  ansible.builtin.copy:
+    src: MetalLB_L2Advertisement.yaml
+    dest: ~/metallb/MetalLB_L2Advertisement.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply L2 configuration
+  kubernetes.core.k8s:
+    src: ~/metallb/MetalLB_L2Advertisement.yaml
+    state: present
