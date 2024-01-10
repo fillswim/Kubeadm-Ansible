@@ -1,0 +1,51 @@
+---
+# tasks file for Install-Helm
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ========================================== Download Helm =========================================
+
+- name: Download helm
+  ansible.builtin.get_url:
+    url: "{{ helm_link }}"
+    dest: ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Extract ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz into ~/download
+  become: true
+  ansible.builtin.unarchive:
+    src: ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: ~/download
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+
+- name: Скопировать helm в /usr/local/bin/
+  become: true
+  ansible.builtin.copy:
+    src: ~/download/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+
+- name: Checking helm version
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    helm version
+  register: checking_helm_version_output
+
+- name: Вывод версии Helm
+  ansible.builtin.debug:
+    var: checking_helm_version_output.stdout
+  when:
+    - checking_helm_version_output.stdout is defined

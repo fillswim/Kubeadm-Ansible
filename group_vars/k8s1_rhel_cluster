@@ -46,3 +46,7 @@ calicoctl_link:                 "https://raw.githubusercontent.com/projectcalico
 metallb_version:                0.13.12
 metallb_link:                   "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
 IPAddressPool:                  "192.168.2.217-192.168.2.219"
+
+# Helm
+helm_version:                   3.13.3
+helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
