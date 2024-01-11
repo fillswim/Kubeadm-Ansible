@@ -41,7 +41,7 @@
   ignore_errors: true
   changed_when: false
   ansible.builtin.shell: |
-    helm version
+    helm version --short
   register: checking_helm_version_output
 
 - name: Вывод версии Helm
