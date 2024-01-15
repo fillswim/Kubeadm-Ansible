@@ -50,3 +50,9 @@ IPAddressPool:                  "192.168.2.217-192.168.2.219"
 # Helm
 helm_version:                   3.13.3
 helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+
+# LVM
+disk_name:                      "sdb"
+lvm_project_name:               "longhorn"
+mount_folder:                   "/mnt/lh_disk1"
+fs_type:                        "xfs"

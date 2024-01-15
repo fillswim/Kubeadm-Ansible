@@ -1,0 +1,6 @@
+---
+- name: Create LVM Partition
+  hosts: k8s_workers[0]
+
+  roles:
+    - role: Create-LVM-Partition

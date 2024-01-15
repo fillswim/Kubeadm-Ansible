@@ -1,0 +1,117 @@
+---
+# tasks file for Create-LVM-Partition
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================== Install packages ========================================
+
+- name: Install packages
+  ansible.builtin.yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - lvm2
+      - xfsprogs
+
+# ===================================== Create Physical Volume =====================================
+
+- name: Find PV "{{ device }}"
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    pvscan | grep "{{ device }}"
+  register: pvscan_output
+
+- name: Show PV "{{ device }}"
+  ansible.builtin.debug:
+    var: pvscan_output.stdout
+
+- name: Create Physical Volume "{{ device }}"
+  community.general.parted:
+    device: "{{ device }}"
+    number: 1
+    state: present
+    flags: [ lvm ]
+  when:
+    - pvscan_output.stdout == ""
+
+# ====================================== Create Volume Group =======================================
+
+- name: Find VG "{{ volume_group_name }}"
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    vgscan | grep "{{ volume_group_name }}"
+  register: vgscan_output
+
+- name: Show VG "{{ volume_group_name }}"
+  ansible.builtin.debug:
+    var: vgscan_output.stdout
+
+- name: Create Volume Group "{{ volume_group_name }}"
+  community.general.lvg:
+    vg: "{{ volume_group_name }}"
+    pvs: "{{ disk_part }}"
+    pesize: 16
+  when:
+    - vgscan_output.stdout == ""
+
+# ===================================== Create Logical Volume ======================================
+
+- name: Find LV "{{ logical_volume_name }}"
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    lvscan | grep "{{ logical_volume_name }}"
+  register: lvscan_output
+
+- name: Show LV "{{ logical_volume_name }}"
+  ansible.builtin.debug:
+    var: lvscan_output.stdout
+
+- name: Create Logical Volume "{{ logical_volume_name }}"
+  community.general.lvol:
+    vg: "{{ volume_group_name }}"
+    lv:  "{{ logical_volume_name }}"
+    force: yes
+    size: 100%FREE
+  when:
+    - lvscan_output.stdout == ""
+
+# ================================== Создание точки монтирования ===================================
+
+- name: Проверка существования точки монтирования "{{ mount_folder }}"
+  ansible.builtin.stat:
+    path: "{{ mount_folder }}"
+  register: stat_output
+
+- name: Создание точки монтирования "{{ mount_folder }}"
+  ansible.builtin.file:
+    path: "{{ mount_folder }}"
+    state: directory
+    owner: "{{ mount_folder_owner }}"
+    group: "{{ mount_folder_group }}"
+    mode: "{{ mount_folder_mode }}"
+  when:
+    - stat_output.stat.exists is false
+
+# ===================================== Форматирование диска =======================================
+
+- name: Форматирование "{{ full_lvm_name }}" в "{{ fs_type }}"
+  community.general.filesystem:
+    fstype: "{{ fs_type }}"
+    dev: "{{ full_lvm_name }}"
+
+# ====================================== Монтирование диска ========================================
+
+- name: Монтирование "{{ full_lvm_name }}" в "{{ mount_folder }}"
+  ansible.posix.mount:
+    src: "{{ full_lvm_name }}"
+    path: "{{ mount_folder }}"
+    fstype: "{{ fs_type }}"
+    opts: "defaults"
+    state: mounted
