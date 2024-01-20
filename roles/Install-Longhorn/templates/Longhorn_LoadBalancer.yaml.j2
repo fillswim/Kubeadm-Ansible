@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  labels:
+    app: longhorn-ui
+  name: longhorn-frontend-lb
+  namespace: longhorn-system
+spec:
+  type: LoadBalancer
+  loadBalancerIP: {{ longhorn_gui_ip }}
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: longhorn-ui
+  sessionAffinity: None

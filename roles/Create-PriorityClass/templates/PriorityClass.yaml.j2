@@ -1,0 +1,8 @@
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: {{ longhorn_priorityclass_name }}
+value: {{ longhorn_priorityclass_value }}
+globalDefault: false
+description: {{ longhorn_priorityclass_description }}

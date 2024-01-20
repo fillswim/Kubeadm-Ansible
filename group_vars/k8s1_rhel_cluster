@@ -56,3 +56,14 @@ disk_name:                      "sdb"
 lvm_project_name:               "longhorn"
 mount_folder:                   "/mnt/lh_disk1"
 fs_type:                        "xfs"
+
+# Longhorn
+longhorn_chart_name:            "longhorn"
+longhorn_namespace:             "longhorn-system"
+longhorn_gui_ip:                192.168.2.217
+longhorn_priorityclass_value:   2000001000
+
+longhorn_repo_name:             "longhorn_repo"
+longhorn_helm_repo:             "https://charts.longhorn.io"
+full_chart_name:                "{{ longhorn_repo_name }}/longhorn"
+

@@ -1,12 +1,12 @@
 ---
 # vars file for Create-LVM-Partition
 
-device:                         "/dev/{{ disk_name }}"
-disk_part:                      "{{ device }}1"
-volume_group_name:              "{{ lvm_project_name }}-vg"
-logical_volume_name:            "{{ lvm_project_name }}-lv"
-full_lvm_name:                  "/dev/{{ volume_group_name }}/{{ logical_volume_name }}"
+device:                 "/dev/{{ disk_name }}"
+disk_part:              "{{ device }}1"
+volume_group_name:      "{{ lvm_project_name }}-vg"
+logical_volume_name:    "{{ lvm_project_name }}-lv"
+full_lvm_name:          "/dev/{{ volume_group_name }}/{{ logical_volume_name }}"
 
-mount_folder_owner:             "root"
-mount_folder_group:             "root"
-mount_folder_mode:              0775
+mount_folder_owner:     "root"
+mount_folder_group:     "root"
+mount_folder_mode:      0775

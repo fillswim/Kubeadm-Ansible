@@ -1,0 +1,86 @@
+---
+# tasks file for Install-Longhorn
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================== Install Longhorn ========================================
+
+- name: Создание папки ~/longhorn
+  ansible.builtin.file:
+    path: /root/longhorn
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy values.yaml
+  become: true
+  ansible.builtin.copy:
+    src: values.yaml
+    dest: /root/longhorn/values.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add Longhorn repo
+  kubernetes.core.helm_repository:
+    name: longhorn_repo
+    repo_url: "{{ longhorn_helm_repo }}"
+
+- name: Install Longhorn
+  kubernetes.core.helm:
+    update_repo_cache: true
+    name: "{{ longhorn_chart_name }}"                   # longhorn
+    chart_ref: "{{ full_chart_name }}"                  # longhorn_repo/longhorn
+    release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
+    create_namespace: true
+    values_files:
+      - /root/longhorn/values.yaml
+
+# ================================== Изменение api ресурсов Longhorn ===============================
+
+- name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
+  register: priorityclass
+
+- name: Create variable priorityclass
+  ansible.builtin.set_fact:
+    priorityclass: "{{ priorityclass.stdout }}"
+
+- name: Show priorityclass
+  ansible.builtin.debug:
+    var: priorityclass
+
+- name: Change priority-class to "{{ priorityclass }}"
+  kubernetes.core.k8s_json_patch:
+    kind: settings
+    namespace: longhorn-system
+    name: priority-class
+    api_version: longhorn.io/v1beta2
+    patch:
+      - op: replace
+        path: /value
+        value: "{{ priorityclass }}"
+
+# =================================== Install Longhorn LoadBalancer ================================
+
+#- name: Copy Longhorn_LoadBalancer.yaml
+#  become: true
+#  ansible.builtin.template:
+#    src: Longhorn_LoadBalancer.yaml.j2
+#    dest: ~/longhorn/Longhorn_LoadBalancer.yaml
+#    owner: root
+#    group: root
+#    mode: "0644"
+#
+#- name: Install Longhorn LoadBalancer
+#  kubernetes.core.k8s:
+#    src: ~/longhorn/Longhorn_LoadBalancer.yaml
+#    state: present

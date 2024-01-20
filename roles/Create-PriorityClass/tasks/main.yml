@@ -1,0 +1,46 @@
+---
+# tasks file for Create-PriorityClass
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================== Create PriorityClass ====================================
+
+- name: Checking that the priorityclass "{{ longhorn_priorityclass_name }}" exists
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get priorityclass | grep "{{ longhorn_priorityclass_name }}"
+  register: checking_priorityclass_exists_output
+
+- name: Block create Longhorn PriorityClass
+  become: true
+  when:
+    - checking_priorityclass_exists_output.stdout == ""
+  block:
+
+    - name: Создание папки ~/PriorityClass
+      ansible.builtin.file:
+        path: ~/PriorityClass
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
+    - name: Copy PriorityClass.yaml
+      become: true
+      ansible.builtin.template:
+        src: PriorityClass.yaml.j2
+        dest: ~/PriorityClass/PriorityClass.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create PriorityClass
+      kubernetes.core.k8s:
+        src: ~/PriorityClass/PriorityClass.yaml
+        state: present
+        force: true
