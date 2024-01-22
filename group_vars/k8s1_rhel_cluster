@@ -57,13 +57,24 @@ lvm_project_name:               "longhorn"
 mount_folder:                   "/mnt/lh_disk1"
 fs_type:                        "xfs"
 
+# Ingress Controller
+ingress_controller_ip:          192.168.2.217
+
+nginx_ingress_release_name:     "ingress-nginx"
+nginx_ingress_namespace:        "ingress-nginx"
+
+nginx_ingress_helm_repo_name:   "ingress-nginx"
+nginx_ingress_helm_repo_url:    "https://kubernetes.github.io/ingress-nginx"
+nginx_ingress_full_chart_name:  "{{ nginx_ingress_helm_repo_name }}/ingress-nginx"
+
+
 # Longhorn
-longhorn_chart_name:            "longhorn"
+longhorn_release_name:          "longhorn"
 longhorn_namespace:             "longhorn-system"
 longhorn_gui_ip:                192.168.2.217
 longhorn_priorityclass_value:   2000001000
 
-longhorn_repo_name:             "longhorn_repo"
-longhorn_helm_repo:             "https://charts.longhorn.io"
-full_chart_name:                "{{ longhorn_repo_name }}/longhorn"
+longhorn_helm_repo_name:        "longhorn"
+longhorn_helm_repo_url:         "https://charts.longhorn.io"
+longhorn_full_chart_name:       "{{ longhorn_helm_repo_name }}/longhorn"
 

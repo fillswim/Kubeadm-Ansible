@@ -1,0 +1,42 @@
+---
+# tasks file for Install-IngressController
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ==================================== Install IngressController ===================================
+
+- name: Создание папки /root/IngressController
+  ansible.builtin.file:
+    path: /root/IngressController
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy values.yaml
+  become: true
+  ansible.builtin.template:
+    src: values.yaml.j2
+    dest: /root/IngressController/values.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add Nginx Ingress Controller repo
+  kubernetes.core.helm_repository:
+    name: "{{ nginx_ingress_helm_repo_name }}"
+    repo_url: "{{ nginx_ingress_helm_repo_url }}"
+
+- name: Install Nginx Ingress Controller
+  kubernetes.core.helm:
+    update_repo_cache: true
+    name: "{{ nginx_ingress_release_name }}"            # ingress-nginx
+    chart_ref: "{{ nginx_ingress_full_chart_name }}"    # ingress-nginx/ingress-nginx
+    release_namespace: "{{ nginx_ingress_namespace }}"  # ingress-nginx
+    create_namespace: true
+    values_files:
+      - /root/IngressController/values.yaml
