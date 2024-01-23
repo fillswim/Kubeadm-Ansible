@@ -6,10 +6,10 @@ metadata:
   labels:
     app: longhorn-ui
   name: longhorn-frontend-lb
-  namespace: longhorn-system
+  namespace: {{ longhorn_namespace }}
 spec:
   type: LoadBalancer
-  loadBalancerIP: {{ longhorn_gui_ip }}
+  loadBalancerIP: {{ longhorn_loadbalancer_ip }}
   ports:
   - name: http
     port: 80

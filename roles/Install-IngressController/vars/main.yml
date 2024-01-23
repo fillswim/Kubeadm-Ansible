@@ -1,0 +1,9 @@
+---
+# vars file for Install-IngressController
+
+nginx_ingress_release_name:     "ingress-nginx"
+nginx_ingress_namespace:        "ingress-nginx"
+
+nginx_ingress_helm_repo_name:   "ingress-nginx"
+nginx_ingress_helm_repo_url:    "https://kubernetes.github.io/ingress-nginx"
+nginx_ingress_full_chart_name:  "{{ nginx_ingress_helm_repo_name }}/ingress-nginx"

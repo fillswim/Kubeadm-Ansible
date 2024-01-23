@@ -178,7 +178,7 @@
       or 
       ((added_node is defined) 
         and (inventory_hostname in added_node) 
-        and ("'worker' in added_node") 
+        and (("'worker' in added_node") or ("'str' in added_node")) 
         and (added_node in groups['k8s_workers']))
   block:
 

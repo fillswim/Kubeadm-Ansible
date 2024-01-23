@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ longhorn_ingress_name }}
+  namespace: {{ longhorn_namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+    nginx.ingress.kubernetes.io/auth-secret: {{ longhorn_auth_secret_name }}
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required '
+    nginx.ingress.kubernetes.io/proxy-body-size: 10000m
+spec:
+  ingressClassName: {{ ingress_class_name }}
+  rules:
+  - host: {{ longhorn_ingress_url }}
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: {{ longhorn_frontend_service_name }}
+            port:
+              number: {{ longhorn_frontend_service_port }}

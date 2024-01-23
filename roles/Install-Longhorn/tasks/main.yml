@@ -69,7 +69,78 @@
         path: /value
         value: "{{ priorityclass }}"
 
-# =================================== Install Longhorn LoadBalancer ================================
+# =============================== Longhorn GUI с авторизацией (Ingress) ============================
+
+# ======================= Install htpasswd ========================
+
+- name: Install htpasswd for RedHat
+  when: ansible_os_family == "RedHat"
+  ansible.builtin.yum:
+    name: httpd-tools
+    state: latest
+
+- name: Install htpasswd for Ubuntu
+  when: ansible_os_family == "Ubuntu"
+  ansible.builtin.apt:
+    name: apache2-utils
+    state: present
+
+- name: Install passlib
+  ansible.builtin.pip:
+    name:
+      - passlib
+
+# ===================== Create htpasswd file ======================
+
+- name: Add admin to auth
+  community.general.htpasswd:
+    path: "{{ htpasswd_file_path }}"
+    name: admin
+    password: password
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Add user to auth
+  community.general.htpasswd:
+    path: "{{ htpasswd_file_path }}"
+    name: user
+    password: password
+
+# ================ Convert htpasswd file to secret ================
+
+- name: Delete old secret
+  ignore_errors: true
+  ansible.builtin.shell:
+    cmd: |
+      kubectl delete secret {{ longhorn_auth_secret_name }} \
+      --namespace {{ longhorn_namespace }}
+
+- name: Create secret
+  ansible.builtin.shell:
+    cmd: |
+      kubectl create secret generic {{ longhorn_auth_secret_name }} \
+      --namespace {{ longhorn_namespace }} \
+      --from-file={{ htpasswd_file_path }}
+
+# ================== Create Longhorn Ingress Role =================
+
+- name: Copy Longhorn_Ingress.yaml
+  become: true
+  ansible.builtin.template:
+    src: Longhorn_Ingress.yaml.j2
+    dest: "{{ longhorn_project_folder }}/Longhorn_Ingress.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Longhorn Ingress
+  kubernetes.core.k8s:
+    src: "{{ longhorn_project_folder }}/Longhorn_Ingress.yaml"
+    state: present
+
+
+# ============================ Longhorn GUI без авторизации (LoadBalancer) =========================
 
 #- name: Copy Longhorn_LoadBalancer.yaml
 #  become: true

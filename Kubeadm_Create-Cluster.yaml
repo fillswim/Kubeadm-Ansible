@@ -39,7 +39,7 @@
   roles:
     - role: Install-Helm
 
-# ========== Install Longhorn ========== 
+# ========== Install Longhorn ==========
 
 - name: Create LVM Partition
   hosts: k8s_workers
