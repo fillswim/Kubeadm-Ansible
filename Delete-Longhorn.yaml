@@ -1,0 +1,6 @@
+---
+- name: Delete Longhorn
+  hosts: k8s_masters[0]
+
+  roles:
+    - role: Delete-Longhorn

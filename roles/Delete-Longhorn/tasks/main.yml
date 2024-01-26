@@ -1,0 +1,36 @@
+---
+# tasks file for Delete-Longhorn
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ================================== Delete Longhorn Ingress Role ==================================
+
+- name: Checking that Longhorn_Ingress.yaml exists
+  ansible.builtin.stat:
+    path: "{{ longhorn_project_folder }}/Longhorn_Ingress.yaml"
+  register: longhorn_ingress_output
+
+- name: Delete Longhorn Ingress
+  when: longhorn_ingress_output.stat.exists
+  kubernetes.core.k8s:
+    src: "{{ longhorn_project_folder }}/Longhorn_Ingress.yaml"
+    state: absent
+
+# ========================================= Delete Longhorn ========================================
+
+- name: Разрешить удаление Longhorn
+  ansible.builtin.shell:
+    cmd: |
+      kubectl -n longhorn-system patch -p '{"value": "true"}' \
+      --type=merge lhs deleting-confirmation-flag
+
+- name: Delete Longhorn
+  kubernetes.core.helm:
+    name: "{{ longhorn_release_name }}"                 # longhorn
+    release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
+    state: absent
+    wait: True

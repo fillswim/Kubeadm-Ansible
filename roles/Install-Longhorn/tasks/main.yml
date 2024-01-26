@@ -31,43 +31,53 @@
     name: "{{ longhorn_helm_repo_name }}"
     repo_url: "{{ longhorn_helm_repo_url }}"
 
-- name: Install Longhorn
+#- name: Install Longhorn with values.yaml
+#  kubernetes.core.helm:
+#    update_repo_cache: true
+#    name: "{{ longhorn_release_name }}"                 # longhorn
+#    chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
+#    release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
+#    create_namespace: true
+#    wait: True
+#    values_files:
+#      - /root/longhorn/values.yaml
+
+- name: Install Longhorn by default
   kubernetes.core.helm:
     update_repo_cache: true
     name: "{{ longhorn_release_name }}"                 # longhorn
     chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
     create_namespace: true
-    values_files:
-      - /root/longhorn/values.yaml
+    wait: True
 
-# ================================== Изменение api ресурсов Longhorn ===============================
-
-- name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
-  ignore_errors: true
-  changed_when: false
-  ansible.builtin.shell: |
-    kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
-  register: priorityclass
-
-- name: Create variable priorityclass
-  ansible.builtin.set_fact:
-    priorityclass: "{{ priorityclass.stdout }}"
-
-- name: Show priorityclass
-  ansible.builtin.debug:
-    var: priorityclass
-
-- name: Change priority-class to "{{ priorityclass }}"
-  kubernetes.core.k8s_json_patch:
-    kind: settings
-    namespace: longhorn-system
-    name: priority-class
-    api_version: longhorn.io/v1beta2
-    patch:
-      - op: replace
-        path: /value
-        value: "{{ priorityclass }}"
+## ================================== Изменение api ресурсов Longhorn ===============================
+#
+#- name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
+#  ignore_errors: true
+#  changed_when: false
+#  ansible.builtin.shell: |
+#    kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
+#  register: priorityclass
+#
+#- name: Create variable priorityclass
+#  ansible.builtin.set_fact:
+#    priorityclass: "{{ priorityclass.stdout }}"
+#
+#- name: Show priorityclass
+#  ansible.builtin.debug:
+#    var: priorityclass
+#
+#- name: Change priority-class to "{{ priorityclass }}"
+#  kubernetes.core.k8s_json_patch:
+#    kind: settings
+#    namespace: longhorn-system
+#    name: priority-class
+#    api_version: longhorn.io/v1beta2
+#    patch:
+#      - op: replace
+#        path: /value
+#        value: "{{ priorityclass }}"
 
 # =============================== Longhorn GUI с авторизацией (Ingress) ============================
 

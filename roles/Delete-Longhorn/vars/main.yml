@@ -1,0 +1,8 @@
+---
+# vars file for Delete-Longhorn
+
+longhorn_project_folder:        "/root/longhorn"
+
+# Releas
+longhorn_release_name:          "longhorn"
+longhorn_namespace:             "longhorn-system"

@@ -1,0 +1,8 @@
+---
+- name: Customization Longhorn
+  serial: 1
+  order: sorted
+  hosts: k8s_workers
+
+  roles:
+    - role: Customization-Longhorn
