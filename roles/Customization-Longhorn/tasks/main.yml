@@ -25,26 +25,26 @@
 
 # ======================================= Поиск диска Longhorn =====================================
 
-- name: Поиск имени диска Longhorn
+- name: Поиск имени дефолтного диска Longhorn
   delegate_to: "{{ groups['k8s_masters'][0] }}"
   ignore_errors: true
   changed_when: false
   ansible.builtin.shell: |
     kubectl get lhn "{{ inventory_hostname }}" -n longhorn-system -oyaml \
     | grep default-disk- | head -1 | awk '{print $1}' | sed 's/://g'
-  register: longhorn_default_disk_name
+  register: longhorn_default_disk_name_output
 
 - name: Создание переменной longhorn_default_disk_name
   ansible.builtin.set_fact:
-    longhorn_default_disk_name: "{{ longhorn_default_disk_name.stdout }}"
+    longhorn_default_disk_name: "{{ longhorn_default_disk_name_output.stdout }}"
 
-- name: Вывод имени диска
+- name: Вывод имени дефолтного диска Longhorn
   ansible.builtin.debug:
     var: longhorn_default_disk_name
 
 # ==================================== Выключение диска Longhorn ===================================
 
-- name: Выключить диск Longhorn на не str нодах
+- name: Выключить дефолтный диск Longhorn на всех нодах, где он есть
   delegate_to: "{{ groups['k8s_masters'][0] }}"
   when:
     - longhorn_default_disk_name != ""
@@ -60,7 +60,7 @@
 
 # ============================== Удаление дефолтного диска в Longhorn ==============================
 
-- name: Удаление диска Longhorn на не str нодах
+- name: Удаление дефолтный диска Longhorn на всех нодах, где он есть
   delegate_to: "{{ groups['k8s_masters'][0] }}"
   when:
     - longhorn_default_disk_name != ""

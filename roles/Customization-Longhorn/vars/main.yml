@@ -1,8 +1,12 @@
 ---
 # vars file for Customization-Longhorn
 
+# Значения для дефолтного диска Longhorn:
+# longhorn_disk_name:             "default-disk-fd0000000000"
+# longhorn_disk_mount_folder:     "/var/lib/longhorn/"
+
 longhorn_disk_name:             "disk-1"
-longhorn_disk_mount_folder:     "/mnt/lh_disk1"
+longhorn_disk_mount_folder:     "/mnt/lh_disk1/"
 
 longhorn_api_version:           "longhorn.io/v1beta2"
 longhorn_namespace:             "longhorn-system"

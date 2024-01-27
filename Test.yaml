@@ -1,0 +1,8 @@
+---
+- name: Test
+  # serial: 1
+  # order: sorted
+  hosts: k8s_workers
+
+  roles:
+    - role: Test

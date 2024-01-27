@@ -1,0 +1,26 @@
+---
+# tasks file for Test
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================= Поиск диска Longhorn =====================================
+
+- name: Поиск хоста
+  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    nslookup "{{ inventory_hostname }}"
+  register: nslookup_output
+
+- name: Создание переменной nslookup
+  ansible.builtin.set_fact:
+    nslookup: "{{ nslookup_output.stdout }}"
+
+- name: Вывод nslookup
+  ansible.builtin.debug:
+    var: nslookup
