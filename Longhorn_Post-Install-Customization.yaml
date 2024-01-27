@@ -1,0 +1,6 @@
+---
+- name: Longhorn Post Install Customization
+  hosts: k8s_workers
+
+  roles:
+    - role: Longhorn-Post-Install-Customization

@@ -1,6 +1,0 @@
----
-- name: Customization Longhorn
-  hosts: k8s_workers
-
-  roles:
-    - role: Customization-Longhorn
