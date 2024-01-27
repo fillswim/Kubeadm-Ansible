@@ -51,34 +51,6 @@
     create_namespace: true
     wait: True
 
-## ================================== Изменение api ресурсов Longhorn ===============================
-#
-#- name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
-#  ignore_errors: true
-#  changed_when: false
-#  ansible.builtin.shell: |
-#    kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
-#  register: priorityclass
-#
-#- name: Create variable priorityclass
-#  ansible.builtin.set_fact:
-#    priorityclass: "{{ priorityclass.stdout }}"
-#
-#- name: Show priorityclass
-#  ansible.builtin.debug:
-#    var: priorityclass
-#
-#- name: Change priority-class to "{{ priorityclass }}"
-#  kubernetes.core.k8s_json_patch:
-#    kind: settings
-#    namespace: longhorn-system
-#    name: priority-class
-#    api_version: longhorn.io/v1beta2
-#    patch:
-#      - op: replace
-#        path: /value
-#        value: "{{ priorityclass }}"
-
 # =============================== Longhorn GUI с авторизацией (Ingress) ============================
 
 # ======================= Install htpasswd ========================
