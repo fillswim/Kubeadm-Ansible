@@ -254,6 +254,25 @@
     state: started
     enabled: true
 
+# ================================= Installing packages for Longhorn ===============================
+
+- name: Install packages for Longhorn on RedHat
+  when: ansible_os_family == "RedHat"
+  ansible.builtin.yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - cifs-utils
+      - nfs-utils
+
+- name: Install packages for Longhorn on Ubuntu
+  when: ansible_os_family == "Ubuntu"
+  ansible.builtin.apt:
+    pkg:
+    - cifs-utils
+    - nfs-common
+    - nfs-utils
+
 # ============================================= Reboot =============================================
 
 - name: Reboot

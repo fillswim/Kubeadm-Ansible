@@ -1,0 +1,6 @@
+---
+- name: Longhorn Taints
+  hosts: k8s_workers
+
+  roles:
+    - role: Longhorn-Taints

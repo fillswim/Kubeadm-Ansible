@@ -1,0 +1,149 @@
+---
+# tasks file for Longhorn-Taints
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# =================================== Изменение настроек Longhorn ==================================
+
+- name: Блок для изменений глобальных настроек Longhorn
+  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  run_once: true
+  block:
+
+    # =================== Проверка состояния Longhorn ===================
+
+    - name: Подсчет количества подов Longhorn в состоянии не Running
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get pods -n longhorn-system --no-headers | grep -iv Running | wc -l
+      register: count_longhorn_pods_not_running_step1
+
+    - name: Вывод количества подов Longhorn в состоянии не Running
+      ansible.builtin.debug:
+        var: count_longhorn_pods_not_running_step1.stdout
+
+    - name: Вывод сообщения о количестве подов Longhorn в состоянии не Running
+      ignore_errors: true
+      ansible.builtin.assert:
+        that: count_longhorn_pods_not_running_step1.stdout|regex_search("{{ target_count }}")
+        fail_msg: "Не все поды Longhorn в состоянии Running"
+        success_msg: "Все поды Longhorn в состоянии Running"
+
+    - name: Проверка состояния подов Longhorn
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get pods -n longhorn-system
+      register: longhorn_pods_step1
+
+    - name: Вывод состояния подов Longhorn
+      ansible.builtin.debug:
+        var: longhorn_pods_step1.stdout
+
+    # == Завершение работы плейбука, если не все поды Longhorn Running ==
+
+    - name: Завершение выполнение плэйбука, если не все поды Longhorn в состоянии Running
+      ansible.builtin.meta: end_play
+      when:
+        - count_longhorn_pods_not_running_step1.stdout != target_count
+
+    # ====================== Проверка состояния PVC =====================
+
+    - name: Подсчет количества PVC в состоянии Attached
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get lhv -n longhorn-system --no-headers | grep attached | wc -l
+      register: count_pvc_attached
+
+    - name: Вывод количества PVC в состоянии Attached
+      ansible.builtin.debug:
+        var: count_pvc_attached.stdout
+
+    - name: Вывод сообщения о количестве PVC в состоянии Attached
+      ignore_errors: true
+      ansible.builtin.assert:
+        that: count_pvc_attached.stdout|regex_search("{{ target_count }}")
+        fail_msg: "Остались PVC в статусе Attached"
+        success_msg: "Не осталось PVC в статусе Attached"
+
+    - name: Завершение выполнение плэйбука, если остались PVC в состоянии Attached
+      ansible.builtin.meta: end_play
+      when:
+        - count_pvc_attached.stdout != target_count
+
+    # =============== Установка настройки Taint toleration ==============
+
+    - name: Change taint-toleration to "{{ taint }}"
+      kubernetes.core.k8s_json_patch:
+        kind: settings
+        namespace: "{{ longhorn_namespace }}"
+        name: taint-toleration
+        api_version: "{{ longhorn_api_version }}"
+        patch:
+          - op: replace
+            path: /value
+            value: "{{ taint }}"
+
+    # ========== Проверка успешного перезапуска подов Longhorn ==========
+
+    - name: Подождать 5 секунд перед запуском проверки
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: Проверка в цикле, что все поды Longhorn в состоянии Running
+      changed_when: false
+      ignore_errors: true
+      ansible.builtin.shell: |
+        kubectl get pods -n longhorn-system --no-headers | grep -iv Running | wc -l
+      register: count_longhorn_pods_not_running_step2
+      until: count_longhorn_pods_not_running_step2.stdout == target_count
+      retries: 60   # 60 раз максимум
+      delay: 1      # с задержкой в 1 секунду
+
+    - name: Вывод сообщения о работоспособности подов Longhorn
+      ignore_errors: true
+      ansible.builtin.assert:
+        that: count_longhorn_pods_not_running_step2.stdout|regex_search("{{ target_count }}")
+        fail_msg: "Не все поды Longhorn в состоянии Running"
+        success_msg: "Все поды Longhorn в состоянии Running"
+
+    - name: Проверка состояния подов Longhorn
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get pods -n longhorn-system
+      register: longhorn_pods_step2
+
+    - name: Вывод состояния подов Longhorn
+      ansible.builtin.debug:
+        var: longhorn_pods_step2.stdout
+
+    # == Завершение работы плейбука, если не все поды Longhorn Running ==
+
+    - name: Завершение выполнение плэйбука, если не все поды Longhorn в состоянии Running
+      ansible.builtin.meta: end_play
+      when:
+        - count_longhorn_pods_not_running_step2.stdout != target_count
+
+# =================================== Повесить taint на str ноды ===================================
+
+- name: Повесить taint на ноду "{{ inventory_hostname }}"
+  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  when:
+    - "'str' in inventory_hostname"
+  kubernetes.core.k8s_taint:
+    state: present
+    name: "{{ inventory_hostname }}"
+    taints:
+    - effect: NoSchedule
+      key: "key1"
+      value: "value1"
+
+- name: Перезагрузка str нод
+  throttle: 1
+  become: true
+  when:
+    - "'str' in inventory_hostname"
+  ansible.builtin.reboot:
