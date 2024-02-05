@@ -1,8 +1,11 @@
 ---
 # vars file for Longhorn-Taints
 
-target_count:           "0"
-taint:                  "key1=value1:NoSchedule"
+# Project folder
+longhorn_project_folder:        "/root/longhorn"
 
-longhorn_api_version:   "longhorn.io/v1beta2"
-longhorn_namespace:     "longhorn-system"
+target_count:                   "0"
+taint:                          "key1=value1:NoSchedule"
+
+longhorn_api_version:           "longhorn.io/v1beta2"
+longhorn_namespace:             "longhorn-system"
