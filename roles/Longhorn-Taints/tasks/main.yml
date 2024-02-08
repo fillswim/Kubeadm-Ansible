@@ -10,7 +10,7 @@
 # =================================== Изменение настроек Longhorn ==================================
 
 - name: Блок для изменений глобальных настроек Longhorn
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  delegate_to: "{{ first_cpl_node }}"
   run_once: true
   block:
 
@@ -91,6 +91,14 @@
 
     # ========= C помощью JSON =========
 
+    - name: Создать папку для копирования в нее JSON
+      ansible.builtin.file:
+        path: "{{ longhorn_project_folder }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
     - name: Скопировать Longhorn_NoSchedule_toleration_add.json в {{ longhorn_project_folder }}
       become: true
       ansible.builtin.copy:
@@ -150,7 +158,7 @@
 #    # ======== Модулем k8s_taint =======
 #
 #- name: Повесить taint на ноду "{{ inventory_hostname }}"
-#  delegate_to: "{{ groups['k8s_masters'][0] }}"
+#  delegate_to: "{{ first_cpl_node }}"
 #  when:
 #    - "'str' in inventory_hostname"
 #  kubernetes.core.k8s_taint:
@@ -164,7 +172,7 @@
     # ======== С помощью команды =======
 
 - name: Повесить taint на ноду "{{ inventory_hostname }}"
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  delegate_to: "{{ first_cpl_node }}"
   when:
     - "'str' in inventory_hostname"
   ansible.builtin.shell: |
@@ -178,7 +186,7 @@
   ansible.builtin.reboot:
 
 - name: Блок проверки работоспособности Longhorn после перезагрузки
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+  delegate_to: "{{ first_cpl_node }}"
   run_once: true
   block:
 

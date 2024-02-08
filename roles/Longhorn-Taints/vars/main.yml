@@ -1,8 +1,15 @@
 ---
 # vars file for Longhorn-Taints
 
+# (Поменять) Название группы с control plain нодами в inventory
+cpl_group_name:                 "k8s_masters"
+# cpl_group_name:               "kube_control_plane"
+
+# (Не менять)
+first_cpl_node:                 "{{ groups[ cpl_group_name ][0] }}"
+
 # Project folder
-longhorn_project_folder:        "/root/longhorn"
+longhorn_project_folder:        "/root/longhorn_tmp"
 
 target_count:                   "0"
 taint:                          "key1=value1:NoSchedule"

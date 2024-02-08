@@ -1,2 +1,9 @@
 ---
 # vars file for ping
+
+# (Поменять) Название группы с control plain нодами в inventory
+cpl_group_name:       "k8s_masters"
+# cpl_group_name:       "kube_control_plane"
+
+# (Не менять)
+first_cpl_node:       "{{ groups[ cpl_group_name ][0] }}"
