@@ -1,6 +1,17 @@
 ---
 # vars file for Customization-Longhorn
 
+# (Поменять) Название группы с control plain нодами в inventory
+cpl_group_name:                 "k8s_masters"
+# cpl_group_name:               "kube_control_plane"
+
+# (Не менять)
+first_cpl_node:                 "{{ groups[ cpl_group_name ][0] }}"
+
+# Project folder
+longhorn_project_folder:        "/root/longhorn_tmp"
+
+
 # Значения для дефолтного диска Longhorn:
 # longhorn_disk_name:             "default-disk-fd0000000000"
 # longhorn_disk_mount_folder:     "/var/lib/longhorn"

@@ -1,0 +1,13 @@
+[
+    {
+        "op":"add",
+        "path":"/spec/disks/{{ longhorn_disk_name }}",
+        "value":{
+            "allowScheduling": true,
+            "evictionRequested": false,
+            "path": "{{ longhorn_disk_mount_folder }}",
+            "storageReserved": 0,
+            "tags": []
+        }
+     }
+]

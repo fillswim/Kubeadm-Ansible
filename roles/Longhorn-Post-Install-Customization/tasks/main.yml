@@ -7,96 +7,161 @@
 #  become: true
 #  ansible.builtin.ping:
 
-# ===================================== Выключение ноды Longhorn ===================================
+# ================================== Копирование Json c настройками ================================
 
-- name: Выключение не str нод Longhorn
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+- name: Блок для копирования JSON c настройками
+  delegate_to: "{{ first_cpl_node }}"
+  run_once: true
+  block:
+
+    - name: Создать папку для копирования в нее JSON
+      ansible.builtin.file:
+        path: "{{ longhorn_project_folder }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
+## ===================================== Выключение ноды Longhorn ===================================
+
+- name: Поиск диска Longhorn
+  delegate_to: "{{ first_cpl_node }}"
   when:
-    - "'str' not in inventory_hostname"
-  kubernetes.core.k8s_json_patch:
-    kind: Node
-    namespace: "{{ longhorn_namespace }}"
-    name: "{{ inventory_hostname }}"
-    api_version: "{{ longhorn_api_version }}"
-    patch:
-      - op: replace
-        path: /spec/allowScheduling
-        value: false # fasle - выключить, true - включить
+  - "'str' not in inventory_hostname"
+  block:
+
+#    - name: Выключение не str нод Longhorn (Вариант с модулем k8s_json_patch)
+#      kubernetes.core.k8s_json_patch:
+#        kind: Node
+#        namespace: "{{ longhorn_namespace }}"
+#        name: "{{ inventory_hostname }}"
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: replace
+#            path: /spec/allowScheduling
+#            value: false # fasle - выключить, true - включить
+
+    - name: Скопировать longhorn_node_disable.json
+      run_once: true
+      become: true
+      ansible.builtin.copy:
+        src: longhorn_node_disable.json
+        dest: "{{ longhorn_project_folder }}/longhorn_node_disable.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Выключение не str нод Longhorn (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhn "{{ inventory_hostname }}" -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_node_disable.json
 
 # ======================================= Поиск диска Longhorn =====================================
 
-- name: Поиск имени дефолтного диска Longhorn
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
-  ignore_errors: true
-  changed_when: false
-  ansible.builtin.shell: |
-    kubectl get lhn "{{ inventory_hostname }}" -n longhorn-system -oyaml \
-    | grep default-disk- | head -1 | awk '{print $1}' | sed 's/://g'
-  register: longhorn_default_disk_name_output
+- name: Поиск диска Longhorn
+  delegate_to: "{{ first_cpl_node }}"
+  run_once: true
+  block:
 
-- name: Создание переменной longhorn_default_disk_name
-  ansible.builtin.set_fact:
-    longhorn_default_disk_name: "{{ longhorn_default_disk_name_output.stdout }}"
+    - name: Поиск имени дефолтного диска Longhorn
+      ignore_errors: true
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get lhn "{{ inventory_hostname }}" -n longhorn-system -oyaml \
+        | grep default-disk- | head -1 | awk '{print $1}' | sed 's/://g'
+      register: longhorn_default_disk_name_output
 
-- name: Вывод имени дефолтного диска Longhorn
-  ansible.builtin.debug:
-    var: longhorn_default_disk_name
+    - name: Создание переменной longhorn_default_disk_name
+      ansible.builtin.set_fact:
+        longhorn_default_disk_name: "{{ longhorn_default_disk_name_output.stdout }}"
 
-# ==================================== Выключение диска Longhorn ===================================
+    - name: Вывод имени дефолтного диска Longhorn
+      ansible.builtin.debug:
+        var: longhorn_default_disk_name
 
-- name: Выключить дефолтный диск Longhorn на всех нодах, где он есть
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+## ==================================== Выключение диска Longhorn ===================================
+
+- name: Выключение диска Longhorn
+  delegate_to: "{{ first_cpl_node }}"
   when:
     - longhorn_default_disk_name != ""
-  kubernetes.core.k8s_json_patch:
-    kind: Node
-    namespace: "{{ longhorn_namespace }}"
-    name: "{{ inventory_hostname }}"
-    api_version: "{{ longhorn_api_version }}"
-    patch:
-      - op: replace
-        path: /spec/disks/{{ longhorn_default_disk_name }}/allowScheduling
-        value: false # fasle - выключить, true - включить
+  block:
 
-# ============================== Удаление дефолтного диска в Longhorn ==============================
+#    - name: Выключить дефолтный диск Longhorn на всех нодах, где он есть (Вариант с модулем k8s_json_patch)
+#      kubernetes.core.k8s_json_patch:
+#        kind: Node
+#        namespace: "{{ longhorn_namespace }}"
+#        name: "{{ inventory_hostname }}"
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: replace
+#            path: /spec/disks/{{ longhorn_default_disk_name }}/allowScheduling
+#            value: false # fasle - выключить, true - включить
 
-- name: Удаление дефолтный диска Longhorn на всех нодах, где он есть
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
+    - name: Скопировать longhorn_disk_disable.json
+      run_once: true
+      become: true
+      ansible.builtin.template:
+        src: longhorn_disk_disable.json.j2
+        dest: "{{ longhorn_project_folder }}/longhorn_disk_disable.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Выключить дефолтный диск Longhorn на всех нодах, где он есть (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhn "{{ inventory_hostname }}" -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_disk_disable.json
+
+
+## ============================== Удаление дефолтного диска в Longhorn ==============================
+
+- name: Удаление дефолтного диска в Longhorn
+  delegate_to: "{{ first_cpl_node }}"
   when:
     - longhorn_default_disk_name != ""
-  kubernetes.core.k8s_json_patch:
-    kind: Node
-    namespace: "{{ longhorn_namespace }}"
-    name: "{{ inventory_hostname }}"
-    api_version: "{{ longhorn_api_version }}"
-    patch:
-      - op: remove
-        path: /spec/disks/{{ longhorn_default_disk_name }}
+  block:
 
-## ============================= Добавление дефолтного диска в Longhorn =============================
-#
-#- name: Добавление диска Longhorn 
-#  delegate_to: "{{ groups['k8s_masters'][0] }}"
-#  when:
-#    - "'str' not in inventory_hostname"
-#    - longhorn_default_disk_name == ""
-#  kubernetes.core.k8s_json_patch:
-#    kind: Node
-#    namespace: "{{ longhorn_namespace }}"
-#    name: "{{ inventory_hostname }}"
-#    api_version: "{{ longhorn_api_version }}"
-#    patch:
-#      - op: add
-#        path: /spec/disks/default-disk-fd0000000000
-#        value: {
-#          "allowScheduling": true,
-#          "evictionRequested": false,
-#          "path": "/var/lib/longhorn/",
-#          "storageReserved": 0,
-#          "tags": []
-#        }
+#    - name: Удаление дефолтный диска Longhorn на всех нодах, где он есть (Вариант с модулем k8s_json_patch)
+#      kubernetes.core.k8s_json_patch:
+#        kind: Node
+#        namespace: "{{ longhorn_namespace }}"
+#        name: "{{ inventory_hostname }}"
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: remove
+#            path: /spec/disks/{{ longhorn_default_disk_name }}
+
+    - name: Скопировать longhorn_disk_delete.json
+      run_once: true
+      become: true
+      ansible.builtin.template:
+        src: longhorn_disk_delete.json.j2
+        dest: "{{ longhorn_project_folder }}/longhorn_disk_delete.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Удаление дефолтный диска Longhorn на всех нодах, где он есть (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhn "{{ inventory_hostname }}" -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_disk_delete.json
 
 # =================================== Добавление диска в Longhorn ==================================
+
+- name: Скопировать longhorn_disk_add.json
+  delegate_to: "{{ first_cpl_node }}"
+  run_once: true
+  become: true
+  ansible.builtin.template:
+    src: longhorn_disk_add.json.j2
+    dest: "{{ longhorn_project_folder }}/longhorn_disk_add.json"
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Block on Longhorn node
   when:
@@ -108,79 +173,88 @@
         path: "{{ longhorn_disk_mount_folder }}"
       register: longhorn_disk_mount_folder_output
 
-    - name: Добавление диска Longhorn 
-      delegate_to: "{{ groups['k8s_masters'][0] }}"
+#    - name: Добавление диска Longhorn (Вариант с содулем k8s_json_patch)
+#      delegate_to: "{{ first_cpl_node }}"
+#      when:
+#        - longhorn_disk_mount_folder_output.stat.exists
+#      kubernetes.core.k8s_json_patch:
+#        kind: Node
+#        namespace: "{{ longhorn_namespace }}"
+#        name: "{{ inventory_hostname }}"
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: add
+#            path: /spec/disks/{{ longhorn_disk_name }}
+#            value: {
+#              "allowScheduling": true,
+#              "evictionRequested": false,
+#              "path": "{{ longhorn_disk_mount_folder }}",
+#              "storageReserved": 0,
+#              "tags": []
+#            }
+
+    - name: Добавление диска Longhorn (Вариант с json)
+      delegate_to: "{{ first_cpl_node }}"
       when:
         - longhorn_disk_mount_folder_output.stat.exists
-      kubernetes.core.k8s_json_patch:
-        kind: Node
-        namespace: "{{ longhorn_namespace }}"
-        name: "{{ inventory_hostname }}"
-        api_version: "{{ longhorn_api_version }}"
-        patch:
-          - op: add
-            path: /spec/disks/{{ longhorn_disk_name }}
-            value: {
-              "allowScheduling": true,
-              "evictionRequested": false,
-              "path": "{{ longhorn_disk_mount_folder }}",
-              "storageReserved": 0,
-              "tags": []
-            }
-
-# ===================================== Изменение Priority Class ===================================
-
-- name: Блок для изменений глобальных настроек Longhorn
-  delegate_to: "{{ groups['k8s_masters'][0] }}"
-  run_once: true
-  block:
-
-    - name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
-      ignore_errors: true
-      changed_when: false
       ansible.builtin.shell: |
-        kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
-      register: priorityclass_output
+        kubectl patch lhn "{{ inventory_hostname }}" -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_disk_add.json
 
-    - name: Create variable priorityclass
-      ansible.builtin.set_fact:
-        priorityclass: "{{ priorityclass_output.stdout }}"
-
-    - name: Show priorityclass
-      ansible.builtin.debug:
-        var: priorityclass
-
-    - name: Change priority-class to "{{ priorityclass }}"
-      when:
-        - priorityclass != ""
-      kubernetes.core.k8s_json_patch:
-        kind: settings
-        namespace: "{{ longhorn_namespace }}"
-        name: priority-class
-        api_version: "{{ longhorn_api_version }}"
-        patch:
-          - op: replace
-            path: /value
-            value: "{{ priorityclass }}"
-
-    - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}"
-      kubernetes.core.k8s_json_patch:
-        kind: settings
-        namespace: "{{ longhorn_namespace }}"
-        name: replica-auto-balance
-        api_version: "{{ longhorn_api_version }}"
-        patch:
-          - op: replace
-            path: /value
-            value: "{{ longhorn_replica_auto_balance_mode }}"
-
-    - name: Change log-level to "{{ longhorn_log_level_mode }}"
-      kubernetes.core.k8s_json_patch:
-        kind: settings
-        namespace: "{{ longhorn_namespace }}"
-        name: log-level
-        api_version: "{{ longhorn_api_version }}"
-        patch:
-          - op: replace
-            path: /value
-            value: "{{ longhorn_log_level_mode }}"
+## ===================================== Изменение Priority Class ===================================
+#
+#- name: Блок для изменений глобальных настроек Longhorn
+#  delegate_to: "{{ groups['k8s_masters'][0] }}"
+#  run_once: true
+#  block:
+#
+#    - name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
+#      ignore_errors: true
+#      changed_when: false
+#      ansible.builtin.shell: |
+#        kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
+#      register: priorityclass_output
+#
+#    - name: Create variable priorityclass
+#      ansible.builtin.set_fact:
+#        priorityclass: "{{ priorityclass_output.stdout }}"
+#
+#    - name: Show priorityclass
+#      ansible.builtin.debug:
+#        var: priorityclass
+#
+#    - name: Change priority-class to "{{ priorityclass }}"
+#      when:
+#        - priorityclass != ""
+#      kubernetes.core.k8s_json_patch:
+#        kind: settings
+#        namespace: "{{ longhorn_namespace }}"
+#        name: priority-class
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: replace
+#            path: /value
+#            value: "{{ priorityclass }}"
+#
+#    - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}"
+#      kubernetes.core.k8s_json_patch:
+#        kind: settings
+#        namespace: "{{ longhorn_namespace }}"
+#        name: replica-auto-balance
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: replace
+#            path: /value
+#            value: "{{ longhorn_replica_auto_balance_mode }}"
+#
+#    - name: Change log-level to "{{ longhorn_log_level_mode }}"
+#      kubernetes.core.k8s_json_patch:
+#        kind: settings
+#        namespace: "{{ longhorn_namespace }}"
+#        name: log-level
+#        api_version: "{{ longhorn_api_version }}"
+#        patch:
+#          - op: replace
+#            path: /value
+#            value: "{{ longhorn_log_level_mode }}"
