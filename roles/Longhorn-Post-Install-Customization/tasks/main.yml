@@ -202,29 +202,31 @@
         --type='json' \
         --patch-file {{ longhorn_project_folder }}/longhorn_disk_add.json
 
-## ===================================== Изменение Priority Class ===================================
-#
-#- name: Блок для изменений глобальных настроек Longhorn
-#  delegate_to: "{{ groups['k8s_masters'][0] }}"
-#  run_once: true
-#  block:
-#
-#    - name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
-#      ignore_errors: true
-#      changed_when: false
-#      ansible.builtin.shell: |
-#        kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
-#      register: priorityclass_output
-#
-#    - name: Create variable priorityclass
-#      ansible.builtin.set_fact:
-#        priorityclass: "{{ priorityclass_output.stdout }}"
-#
-#    - name: Show priorityclass
-#      ansible.builtin.debug:
-#        var: priorityclass
-#
-#    - name: Change priority-class to "{{ priorityclass }}"
+# ================================== Изменение глобальных настроек =================================
+
+- name: Блок для изменений глобальных настроек Longhorn
+  delegate_to: "{{ first_cpl_node }}"
+  run_once: true
+  block:
+
+    # ================== PriorityClass =================
+
+    - name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
+      ignore_errors: true
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get priorityclass | grep "{{ longhorn_priorityclass_value }}" | awk '{print $1}'
+      register: priorityclass_output
+
+    - name: Create variable priorityclass
+      ansible.builtin.set_fact:
+        priorityclass: "{{ priorityclass_output.stdout }}"
+
+    - name: Show priorityclass
+      ansible.builtin.debug:
+        var: priorityclass
+
+#    - name: Change priority-class to "{{ priorityclass }}" (Вариант с содулем k8s_json_patch)
 #      when:
 #        - priorityclass != ""
 #      kubernetes.core.k8s_json_patch:
@@ -236,8 +238,25 @@
 #          - op: replace
 #            path: /value
 #            value: "{{ priorityclass }}"
-#
-#    - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}"
+
+    - name: Скопировать longhorn_priorityclass.json
+      become: true
+      ansible.builtin.template:
+        src: longhorn_priorityclass.json.j2
+        dest: "{{ longhorn_project_folder }}/longhorn_priorityclass.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Change priority-class to "{{ priorityclass }}" (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhs priority-class -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_priorityclass.json
+
+    # ============== Replica-Auto-Balance ==============
+
+#    - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}" (Вариант с содулем k8s_json_patch)
 #      kubernetes.core.k8s_json_patch:
 #        kind: settings
 #        namespace: "{{ longhorn_namespace }}"
@@ -247,8 +266,26 @@
 #          - op: replace
 #            path: /value
 #            value: "{{ longhorn_replica_auto_balance_mode }}"
-#
-#    - name: Change log-level to "{{ longhorn_log_level_mode }}"
+
+    - name: Скопировать longhorn_replica-auto-balance.json
+      become: true
+      ansible.builtin.template:
+        src: longhorn_replica-auto-balance.json.j2
+        dest: "{{ longhorn_project_folder }}/longhorn_replica-auto-balance.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}" (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhs replica-auto-balance -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_replica-auto-balance.json
+
+
+    # =================== Log-Level ====================
+
+#    - name: Change log-level to "{{ longhorn_log_level_mode }}" (Вариант с содулем k8s_json_patch)
 #      kubernetes.core.k8s_json_patch:
 #        kind: settings
 #        namespace: "{{ longhorn_namespace }}"
@@ -258,3 +295,18 @@
 #          - op: replace
 #            path: /value
 #            value: "{{ longhorn_log_level_mode }}"
+
+    - name: Скопировать longhorn_log-level.json
+      become: true
+      ansible.builtin.template:
+        src: longhorn_log-level.json.j2
+        dest: "{{ longhorn_project_folder }}/longhorn_log-level.json"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Change log-level to "{{ longhorn_log_level_mode }}" (Вариант с json)
+      ansible.builtin.shell: |
+        kubectl patch lhs log-level -n longhorn-system \
+        --type='json' \
+        --patch-file {{ longhorn_project_folder }}/longhorn_log-level.json
