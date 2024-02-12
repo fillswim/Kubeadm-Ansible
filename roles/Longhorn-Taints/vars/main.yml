@@ -5,13 +5,16 @@
 cpl_group_name:                 "k8s_masters"
 # cpl_group_name:               "kube_control_plane"
 
-# (Не менять)
+# (Не менять) Первая cpl нода клстера
 first_cpl_node:                 "{{ groups[ cpl_group_name ][0] }}"
 
-# Project folder
+# Папка для Json на первой ноде кластера
 longhorn_project_folder:        "/root/longhorn_tmp"
 
+# Целевое количество подов Longhorn в состоянии не-Running
 target_count:                   "0"
+
+# Тейнт на нодах Longhorn
 taint:                          "key1=value1:NoSchedule"
 
 longhorn_api_version:           "longhorn.io/v1beta2"

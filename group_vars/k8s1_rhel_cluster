@@ -61,6 +61,6 @@ fs_type:                        "xfs"
 # Ingress Controller
 ingress_controller_ip:          192.168.2.217
 
-# Longhorn
+# Longhorn Install
 longhorn_loadbalancer_ip:       192.168.2.218
 longhorn_priorityclass_value:   2000001000
