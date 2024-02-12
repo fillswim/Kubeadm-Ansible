@@ -1,0 +1,6 @@
+---
+- name: Create user
+  hosts: k8s_workers[0]
+
+  roles:
+    - role: user

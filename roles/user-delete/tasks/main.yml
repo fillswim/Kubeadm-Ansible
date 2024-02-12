@@ -1,0 +1,12 @@
+---
+# tasks file for user-delete
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+- name: Delete the user "{{ username }}"
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: absent
+    remove: yes

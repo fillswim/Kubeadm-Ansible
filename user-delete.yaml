@@ -1,0 +1,6 @@
+---
+- name: Delete user
+  hosts: k8s_workers[0]
+
+  roles:
+    - role: user-delete
