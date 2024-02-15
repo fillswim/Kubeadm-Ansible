@@ -1,0 +1,30 @@
+---
+
+- name: Блок проверки PVC
+  delegate_to: "{{ first_cpl_node }}"
+  run_once: true
+  block:
+
+    # ====================== Проверка состояния PVC =====================
+
+    - name: Подсчет количества PVC в состоянии Attached
+      changed_when: false
+      ansible.builtin.shell: |
+        kubectl get lhv -n longhorn-system --no-headers | grep attached | wc -l
+      register: count_pvc_attached
+
+    - name: Вывод количества PVC в состоянии Attached
+      ansible.builtin.debug:
+        var: count_pvc_attached.stdout
+
+    - name: Вывод сообщения о количестве PVC в состоянии Attached
+      ignore_errors: true
+      ansible.builtin.assert:
+        that: count_pvc_attached.stdout|regex_search("{{ target_count }}")
+        fail_msg: "Остались PVC в статусе Attached"
+        success_msg: "Не осталось PVC в статусе Attached"
+
+    - name: Завершение выполнение плэйбука, если остались PVC в состоянии Attached
+      ansible.builtin.meta: end_play
+      when:
+        - count_pvc_attached.stdout != target_count

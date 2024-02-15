@@ -9,7 +9,9 @@ ansible-playbook -i inventory/k8s1_rhel.yaml Role_04-Adding-Other-Nodes.yaml -b
 ```bash
 ansible-playbook -i inventory/k8s1_rhel.yaml Role_04-Adding-Other-Nodes.yaml -b --extra-vars "added_node=k8s1-rhel-str-n01.fillswim.local"
 ```
-
+```bash
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_04-Adding-Other-Nodes.yaml -b --extra-vars "added_node=k8s1-rhel-str-n02.fillswim.local"
+```
 
 
 ## K8s2-RHEL (add all nodes of inventory)

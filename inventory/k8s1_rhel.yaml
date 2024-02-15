@@ -17,6 +17,8 @@ k8s_workers:
       ansible_host: 192.168.2.215
     k8s1-rhel-str-n01.fillswim.local:
       ansible_host: 192.168.2.216
+    k8s1-rhel-str-n02.fillswim.local:
+      ansible_host: 192.168.2.232
 
 k8s1_rhel_cluster:
   children:
