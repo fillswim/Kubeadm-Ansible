@@ -106,6 +106,7 @@
     # ======== С помощью команды =======
 
     - name: Повесить taint "{{ taint }}" на str ноды
+      ignore_errors: true
       delegate_to: "{{ first_cpl_node }}"
       throttle: 1
       ansible.builtin.shell: |
