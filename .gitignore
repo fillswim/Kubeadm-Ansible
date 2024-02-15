@@ -5,3 +5,4 @@ venv/
 ENV/
 .venv/
 .conda
+ansible.log
