@@ -5,7 +5,7 @@
   become: true
   ansible.builtin.ping:
 
-- ansible.posix.sysctl:
+- ansible.builtin.sysctl:                 # Для ЦИКа. Нормальный модуль - ansible.posix.sysctl
     name: fs.inotify.max_user_instances
     value: '{{ max_user_instances }}'
     sysctl_set: true
