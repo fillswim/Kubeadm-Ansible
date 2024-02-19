@@ -1,0 +1,11 @@
+---
+# tasks file for inotify
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+- ansible.posix.sysctl:
+    name: fs.inotify.max_user_instances
+    value: '{{ max_user_instances }}'
+    sysctl_set: true
