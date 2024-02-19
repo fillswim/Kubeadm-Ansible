@@ -1,6 +1,0 @@
----
-- name: Set inotify
-  hosts: all
-
-  roles:
-    - role: inotify

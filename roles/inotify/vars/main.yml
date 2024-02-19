@@ -1,4 +1,0 @@
----
-# vars file for inotify
-
-max_user_instances:     8192
