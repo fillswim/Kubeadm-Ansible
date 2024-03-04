@@ -1,0 +1,52 @@
+---
+# tasks file for Install-Prometheus
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================= Install Prometheus =======================================
+
+- name: Создание папки "{{ prometheus_project_folder }}"
+  ansible.builtin.file:
+    path: "{{ prometheus_project_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy values.yaml
+  become: true
+  ansible.builtin.template:
+    src: Prometheus_LoadBalancer.yaml.j2
+    dest: "{{ prometheus_project_folder }}/Prometheus_LoadBalancer.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Prometheus with values.yaml
+  kubernetes.core.helm:
+    update_repo_cache: true
+    name: "{{ prometheus_release_name }}"                 # my-prometheus
+    chart_ref: "{{ prometheus_full_chart_name }}"
+    release_namespace: "{{ prometheus_namespace }}"       # monitoring
+    create_namespace: true
+    wait: True
+    values_files:
+      - "{{ prometheus_project_folder }}/Prometheus_LoadBalancer.yaml"
+
+- name: Copy Longhorn-ServiceMonitor.yaml
+  become: true
+  ansible.builtin.template:
+    src: Longhorn-ServiceMonitor.yaml.j2
+    dest: "{{ prometheus_project_folder }}/Longhorn-ServiceMonitor.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Создание ServiceMonitor Longhorn
+  kubernetes.core.k8s:
+    src: "{{ prometheus_project_folder }}/Longhorn-ServiceMonitor.yaml"
+    state: present

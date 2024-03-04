@@ -64,3 +64,6 @@ ingress_controller_ip:          192.168.2.217
 # Longhorn Install
 longhorn_loadbalancer_ip:       192.168.2.218
 longhorn_priorityclass_value:   2000001000
+
+# Prometheus Install
+prometheus_loadbalancer_ip:     192.168.2.218

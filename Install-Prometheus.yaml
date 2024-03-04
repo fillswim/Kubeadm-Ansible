@@ -1,0 +1,6 @@
+---
+- name: Install Prometheus
+  hosts: k8s_masters[0]
+
+  roles:
+    - role: Install-Prometheus
