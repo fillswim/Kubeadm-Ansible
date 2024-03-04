@@ -37,6 +37,8 @@
     values_files:
       - "{{ prometheus_project_folder }}/Prometheus_LoadBalancer.yaml"
 
+# ================================= Create ServiceMonitor Longhorn =================================
+
 - name: Copy Longhorn-ServiceMonitor.yaml
   become: true
   ansible.builtin.template:
