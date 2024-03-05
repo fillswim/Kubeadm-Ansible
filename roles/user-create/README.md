@@ -1,4 +1,4 @@
-# User
+# User Create
 
 # Install passlib
 ```bash
@@ -12,5 +12,5 @@ ansible-vault encrypt_string '123456' --name 'upassword'
 
 ## Запуск:
 ```bash
-ansible-playbook -i inventory/k8s1_rhel.yaml user.yaml --ask-vault-pass -b
+ansible-playbook -i inventory/k8s1_rhel.yaml user-create.yaml --ask-vault-pass -b
 ```
