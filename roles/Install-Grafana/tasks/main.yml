@@ -1,0 +1,38 @@
+---
+# tasks file for Install-Grafana
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ========================================= Install Grafana ========================================
+
+- name: Создание папки "{{ grafana_project_folder }}"
+  ansible.builtin.file:
+    path: "{{ grafana_project_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy values.yaml
+  become: true
+  ansible.builtin.template:
+    src: grafana_values.yaml.j2
+    dest: "{{ grafana_project_folder }}/grafana_values.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install grafana with values.yaml
+  kubernetes.core.helm:
+    update_repo_cache: true
+    name: "{{ grafana_release_name }}"                 # my-grafana
+    chart_ref: "{{ grafana_full_chart_name }}"
+    release_namespace: "{{ grafana_namespace }}"       # monitoring
+    create_namespace: true
+    wait: True
+    values_files:
+      - "{{ grafana_project_folder }}/grafana_values.yaml"

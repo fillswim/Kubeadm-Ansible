@@ -19,6 +19,8 @@ longhorn_full_chart_name:       "{{ longhorn_helm_repo_name }}/longhorn"
 # Ingress
 longhorn_ingress_name:          "longhorn"
 ingress_class_name:             "nginx"
-longhorn_ingress_url:           "longhorn.fillswim.local"
 longhorn_frontend_service_name: "longhorn-frontend"
 longhorn_frontend_service_port: 80
+
+# PriorityClass
+longhorn_priorityclass_value:   2000001000

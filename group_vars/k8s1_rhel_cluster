@@ -63,7 +63,12 @@ ingress_controller_ip:          192.168.2.217
 
 # Longhorn Install
 longhorn_loadbalancer_ip:       192.168.2.218
-longhorn_priorityclass_value:   2000001000
+longhorn_ingress_url:           "longhorn.fillswim.local"
 
 # Prometheus Install
 prometheus_loadbalancer_ip:     192.168.2.218
+
+# Grafana Install
+grafana_loadbalancer_ip:        192.168.2.219
+grafana_loadbalancer_port:      80
+grafana_ingress_url:            "grafana.fillswim.local"

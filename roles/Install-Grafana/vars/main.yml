@@ -1,0 +1,18 @@
+---
+# vars file for Install-Grafana
+
+# Project folder
+grafana_project_folder:       "/root/grafana"
+
+# Releas
+grafana_release_name:         "my-grafana"
+grafana_namespace:            "monitoring"
+
+# grafana-community Repo
+grafana_helm_repo_name:       "grafana"
+grafana_helm_repo_url:        "https://grafana.github.io/helm-charts"
+grafana_full_chart_name:      "{{ grafana_helm_repo_name }}/grafana"
+
+# grafana credentials
+admin_name:                   "admin"
+admin_password:               "password"
