@@ -9,9 +9,9 @@
 
 # ======================================== Install Longhorn ========================================
 
-- name: Создание папки ~/longhorn
+- name: Создание папки "{{ longhorn_project_folder }}"
   ansible.builtin.file:
-    path: /root/longhorn
+    path: "{{ longhorn_project_folder }}"
     state: directory
     owner: root
     group: root
@@ -21,7 +21,7 @@
   become: true
   ansible.builtin.copy:
     src: values.yaml
-    dest: /root/longhorn/values.yaml
+    dest: "{{ longhorn_project_folder }}/values.yaml"
     owner: root
     group: root
     mode: "0644"
@@ -40,7 +40,7 @@
 #    create_namespace: true
 #    wait: True
 #    values_files:
-#      - /root/longhorn/values.yaml
+#      - "{{ longhorn_project_folder }}/values.yaml"
 
 - name: Install Longhorn by default
   kubernetes.core.helm:
@@ -128,12 +128,12 @@
 #  become: true
 #  ansible.builtin.template:
 #    src: Longhorn_LoadBalancer.yaml.j2
-#    dest: ~/longhorn/Longhorn_LoadBalancer.yaml
+#    dest: "{{ longhorn_project_folder }}/Longhorn_LoadBalancer.yaml"
 #    owner: root
 #    group: root
 #    mode: "0644"
 #
 #- name: Install Longhorn LoadBalancer
 #  kubernetes.core.k8s:
-#    src: ~/longhorn/Longhorn_LoadBalancer.yaml
+#    src: "{{ longhorn_project_folder }}/Longhorn_LoadBalancer.yaml"
 #    state: present
