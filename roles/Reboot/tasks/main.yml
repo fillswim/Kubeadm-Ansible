@@ -1,0 +1,15 @@
+---
+# tasks file for Reboot
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ============================================= Reboot =============================================
+
+- name: Reboot
+  # throttle: 1
+  become: true
+  ansible.builtin.reboot:

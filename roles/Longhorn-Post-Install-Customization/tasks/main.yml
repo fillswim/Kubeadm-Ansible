@@ -62,6 +62,10 @@
 
 # ================================= Поиск дефолтного диска Longhorn =================================
 
+- name: Pause for 15 seconds
+  ansible.builtin.pause:
+    seconds: 15
+
 - name: Поиск дефолтного диска Longhorn
   delegate_to: "{{ first_cpl_node }}"
   block:
@@ -83,6 +87,10 @@
         var: longhorn_default_disk_name
 
 ## ==================================== Выключение диска Longhorn ===================================
+
+- name: Pause for 15 seconds
+  ansible.builtin.pause:
+    seconds: 15
 
 - name: Выключение диска Longhorn
   delegate_to: "{{ first_cpl_node }}"
@@ -121,6 +129,10 @@
 
 ## ============================== Удаление дефолтного диска в Longhorn ==============================
 
+- name: Pause for 15 seconds
+  ansible.builtin.pause:
+    seconds: 15
+
 - name: Удаление дефолтного диска в Longhorn
   delegate_to: "{{ first_cpl_node }}"
   when:
@@ -155,6 +167,10 @@
         --patch-file {{ longhorn_project_folder }}/longhorn_disk_delete_{{ inventory_hostname }}.json
 
 # =================================== Добавление диска в Longhorn ==================================
+
+- name: Pause for 15 seconds
+  ansible.builtin.pause:
+    seconds: 15
 
 - name: Скопировать longhorn_disk_add.json
   delegate_to: "{{ first_cpl_node }}"
@@ -217,6 +233,10 @@
 
     # ================== PriorityClass =================
 
+    - name: Pause for 15 seconds
+      ansible.builtin.pause:
+        seconds: 15
+
     - name: Find priorityclass with value "{{ longhorn_priorityclass_value }}"
       ignore_errors: true
       changed_when: false
@@ -262,6 +282,10 @@
 
     # ============== Replica-Auto-Balance ==============
 
+    - name: Pause for 15 seconds
+      ansible.builtin.pause:
+        seconds: 15
+
     # - name: Change replica-auto-balance to "{{ longhorn_replica_auto_balance_mode }}" (Вариант с содулем k8s_json_patch)
     #   kubernetes.core.k8s_json_patch:
     #     kind: settings
@@ -289,6 +313,10 @@
         --patch-file {{ longhorn_project_folder }}/longhorn_replica-auto-balance.json
 
     # =================== Log-Level ====================
+
+    - name: Pause for 15 seconds
+      ansible.builtin.pause:
+        seconds: 15
 
     # - name: Change log-level to "{{ longhorn_log_level_mode }}" (Вариант с содулем k8s_json_patch)
     #   kubernetes.core.k8s_json_patch:

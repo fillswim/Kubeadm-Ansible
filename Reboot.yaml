@@ -1,0 +1,7 @@
+---
+
+- name: Reboot all VMs
+  hosts: "all"
+
+  roles:
+    - role: Reboot

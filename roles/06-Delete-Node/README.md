@@ -3,8 +3,19 @@
 ## K8s1-RHEL
 #### Delete node Worker2
 ```bash
-ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s-rhel-worker2.fillswim.local"
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-worker3.fillswim.local"
 ```
+
+#### Delete node Storage 3
+```bash
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n01.fillswim.local"
+```
+```bash
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n03.fillswim.local"
+```
+
+
+
 
 ## K8s2-RHEL
 #### Delete node Master2
