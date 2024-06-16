@@ -1,0 +1,6 @@
+---
+- name: Install Nexys
+  hosts: nexus_servers
+
+  roles:
+    - role: Install-Nexus

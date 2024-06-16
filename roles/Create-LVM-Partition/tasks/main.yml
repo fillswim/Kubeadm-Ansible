@@ -9,9 +9,19 @@
 
 # ======================================== Install packages ========================================
 
-- name: Install packages
+- name: Install packages in RedHat
   ansible.builtin.yum:
     name: "{{ packages }}"
+  when: ansible_os_family == "RedHat"
+  vars:
+    packages:
+      - lvm2
+      - xfsprogs
+
+- name: Install packages in Ubuntu
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+  when: ansible_os_family == "Debian"
   vars:
     packages:
       - lvm2

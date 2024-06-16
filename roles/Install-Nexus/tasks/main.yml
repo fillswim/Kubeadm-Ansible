@@ -1,0 +1,110 @@
+---
+# tasks file for Install-Nexus
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================== Install packages ========================================
+
+- name: Install packages in Ubuntu
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+  when: ansible_os_family == "Debian"
+  vars:
+    packages:
+      - openjdk-{{ java_version }}-jre-headless
+
+# ====================================== Создать пользователя ======================================
+
+- name: Create user "{{ nexus_username }}"
+  ansible.builtin.user:
+    name: "{{ nexus_username }}"
+    state: present
+    shell: /bin/bash
+    system: true
+    create_home: true
+    home: "{{ nexus_folder }}/nexus"
+
+- name: Copy to "/etc/sudoers.d/"
+  ansible.builtin.template:
+    src: user_template.j2
+    dest: "/etc/sudoers.d/{{ nexus_username }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+# ========================================= Установка Nexus ========================================
+
+- name: Download Nexus
+  ansible.builtin.get_url:
+    url: "{{ nexus_tar_url }}"
+    dest: "{{ nexus_folder }}/{{ nexus_tar_name }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Extract "{{ nexus_tar_name }}"
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ nexus_folder }}/{{ nexus_tar_name }}"
+    dest: "{{ nexus_folder }}"
+    remote_src: true
+
+# ================================== Изменение разрешений на папки =================================
+
+- name: Change permissions nexus-"{{ nexus_version }}"
+  ansible.builtin.file:
+    path: "{{ nexus_folder }}/nexus-{{ nexus_version }}"
+    owner: "{{ nexus_username }}"
+    group: "{{ nexus_username }}"
+    mode: '0755'
+    recurse: true
+
+- name: Change permissions "sonatype-work"
+  ansible.builtin.file:
+    path: "{{ nexus_folder }}/sonatype-work"
+    owner: "{{ nexus_username }}"
+    group: "{{ nexus_username }}"
+    mode: '0755'
+    recurse: true
+
+# ======================================== Изменение настроек ======================================
+
+- name: Изменение nexus.rc
+  ansible.builtin.template:
+    src: nexus.rc.j2
+    dest: "{{ nexus_folder }}/nexus-{{ nexus_version }}/bin/nexus.rc"
+    owner: nexus
+    group: nexus
+    mode: "0755"
+
+# ==================================== Создание и запуск сервиса ===================================
+
+- name: Создание nexus.service
+  ansible.builtin.template:
+    src: nexus.service.j2
+    dest: "/etc/systemd/system/nexus.service"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Start and enable nexus
+  ansible.builtin.systemd_service:
+    name: nexus
+    state: started
+    daemon_reload: true
+    enabled: true
+
+# =================================== Вывод пароля администратора ==================================
+
+- name: Прочитать admin.password
+  ansible.builtin.command: cat {{ nexus_folder }}/sonatype-work/nexus3/admin.password
+  changed_when: false
+  register: command_output
+
+- name: Вывести admin.password
+  ansible.builtin.debug:
+    msg: "{{ command_output.stdout }}"

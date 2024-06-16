@@ -1,0 +1,7 @@
+---
+# defaults file for Install-Nexus
+
+java_version: 11
+nexus_version: 3.69.0-02
+nexus_tar_name: "nexus-{{ nexus_version }}-java{{ java_version }}-unix.tar.gz"
+nexus_tar_url: "https://download.sonatype.com/nexus/3/{{ nexus_tar_name }}"

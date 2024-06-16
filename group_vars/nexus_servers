@@ -1,0 +1,15 @@
+---
+ansible_user:                   fill
+ansible_ssh_private_key_file:   /home/fill/.ssh/id_rsa
+ansible_python_interpreter:     auto_silent
+# ansible_python_interpreter:     /usr/bin/python3
+
+# LVM
+disk_name:                      "vdb"
+lvm_project_name:               "nexus"
+mount_folder:                   "/mnt/opt_data"
+fs_type:                        "xfs"
+
+# Nexus
+nexus_username:                 "nexus"
+nexus_folder:                   "/mnt/opt_data"
