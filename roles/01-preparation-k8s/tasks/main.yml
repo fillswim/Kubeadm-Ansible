@@ -157,7 +157,7 @@
     group: root
     mode: "0644"
 
-- name: daemon-reload
+- name: Daemon-reload
   ansible.builtin.systemd_service:
     daemon_reload: true
 

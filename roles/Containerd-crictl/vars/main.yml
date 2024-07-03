@@ -1,0 +1,4 @@
+---
+# vars file for Containerd-crictl
+
+containerd_endpoint_url: "unix:///run/containerd/containerd.sock"

@@ -1,0 +1,7 @@
+---
+
+- name: Edit crictl
+  hosts: "all"
+
+  roles:
+    - role: Containerd-crictl
