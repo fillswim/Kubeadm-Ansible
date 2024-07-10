@@ -1,6 +1,7 @@
 ---
 
 # ansible-playbook -i inventory/k8s1_rhel.yaml Kubeadm_Create-Cluster.yaml -b
+# ansible-playbook -i inventory/k8s1_ol.yaml Kubeadm_Create-Cluster.yaml -b
 
 - name: Prepare VM for K8s
   hosts: "all"
@@ -41,7 +42,7 @@
 
 # ========== Install Longhorn ==========
 
-- name: Create LVM Partition
-  hosts: k8s_workers
-  roles:
-    - role: Create-LVM-Partition
+# - name: Create LVM Partition
+#   hosts: k8s_workers
+#   roles:
+#     - role: Create-LVM-Partition

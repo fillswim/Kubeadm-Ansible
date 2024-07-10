@@ -14,7 +14,8 @@
     path: "/etc/kubernetes/pki/ca.key"
   register: kubeadm_ca
 
-- ansible.builtin.meta: end_play
+- name: End_play
+  ansible.builtin.meta: end_play
   when: kubeadm_ca.stat.exists
 
 # ==================================== Apply kubeadm-config.yaml ===================================

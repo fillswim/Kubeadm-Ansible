@@ -134,7 +134,7 @@
     group: root
     mode: "0644"
 
-- name: Extract containerd-{{ containerd_version }}-linux-amd64.tar.gz into /usr/local
+- name: Extract containerd
   become: true
   ansible.builtin.unarchive:
     src: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
@@ -213,7 +213,7 @@
     group: root
     mode: "0775"
 
-- name: Extract cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz into /opt/cni/bin
+- name: Extract cni
   become: true
   ansible.builtin.unarchive:
     src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
@@ -262,6 +262,8 @@
     name: "{{ packages }}"
   vars:
     packages:
+      - iscsi-initiator-utils
+      - udisks2-iscsi
       - cifs-utils
       - nfs-utils
 
@@ -269,9 +271,10 @@
   when: ansible_os_family == "Ubuntu"
   ansible.builtin.apt:
     pkg:
-    - cifs-utils
-    - nfs-common
-    - nfs-utils
+      - open-iscsi
+      - cifs-utils
+      - nfs-common
+      - nfs-utils
 
 # ============================================= Reboot =============================================
 

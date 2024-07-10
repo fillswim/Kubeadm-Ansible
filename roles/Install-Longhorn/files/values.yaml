@@ -1,5 +1,6 @@
 defaultSettings:
   # -- Default path for storing data on a host. The default value is "/var/lib/longhorn/".
-  defaultDataPath: /mnt/lh_disk1
+  # defaultDataPath: /mnt/lh_disk1
+  defaultDataPath: /var/lib/longhorn
   # -- Setting that automatically rebalances replicas when an available node is discovered.
   replicaAutoBalance: best-effort

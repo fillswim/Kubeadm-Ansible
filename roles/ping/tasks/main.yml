@@ -1,33 +1,34 @@
 ---
+
 # tasks file for ping
-#- name: Ping my servers
-#  become: true
-#  ansible.builtin.ping:
-#
-#- name: Print current user
-#  become: true
-#  ansible.builtin.shell: whoami
-#  register: results
-#
-#- name: Print results of current user
-#  ansible.builtin.debug:
-#    var: results.stdout
+- name: Ping my servers
+  become: true
+  ansible.builtin.ping:
 
-- name: Блок проверки  delegate_to
-  # delegate_to: "{{ groups['k8s_masters'][0] }}"
-  # delegate_to: "{{ groups[ master_group ][0] }}"
-  delegate_to: "{{ first_cpl_node }}"
-  run_once: true
-  block:
-    - name: Ping my servers
-      become: true
-      ansible.builtin.ping:
+# - name: Print current user
+#   become: true
+#   ansible.builtin.shell: whoami
+#   register: results
 
-    - name: Print hostname
-      become: true
-      ansible.builtin.shell: hostname
-      register: results
+# - name: Print results of current user
+#   ansible.builtin.debug:
+#     var: results.stdout
 
-    - name: Print results of hostname
-      ansible.builtin.debug:
-        var: results.stdout
+# - name: Блок проверки  delegate_to
+#   # delegate_to: "{{ groups['k8s_masters'][0] }}"
+#   # delegate_to: "{{ groups[ master_group ][0] }}"
+#   delegate_to: "{{ first_cpl_node }}"
+#   run_once: true
+#   block:
+#     - name: Ping my servers
+#       become: true
+#       ansible.builtin.ping:
+
+#     - name: Print hostname
+#       become: true
+#       ansible.builtin.shell: hostname
+#       register: results
+
+#     - name: Print results of hostname
+#       ansible.builtin.debug:
+#         var: results.stdout

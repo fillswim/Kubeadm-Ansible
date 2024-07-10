@@ -31,16 +31,16 @@
     name: "{{ longhorn_helm_repo_name }}"
     repo_url: "{{ longhorn_helm_repo_url }}"
 
-#- name: Install Longhorn with values.yaml
-#  kubernetes.core.helm:
-#    update_repo_cache: true
-#    name: "{{ longhorn_release_name }}"                 # longhorn
-#    chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
-#    release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
-#    create_namespace: true
-#    wait: True
-#    values_files:
-#      - "{{ longhorn_project_folder }}/values.yaml"
+# - name: Install Longhorn with values.yaml
+#   kubernetes.core.helm:
+#     update_repo_cache: true
+#     name: "{{ longhorn_release_name }}"                 # longhorn
+#     chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
+#     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
+#     create_namespace: true
+#     wait: True
+#     values_files:
+#       - "{{ longhorn_project_folder }}/values.yaml"
 
 - name: Install Longhorn by default
   kubernetes.core.helm:
@@ -49,7 +49,7 @@
     chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
     create_namespace: true
-    wait: True
+    wait: true
 
 # =============================== Longhorn GUI с авторизацией (Ingress) ============================
 
@@ -59,7 +59,8 @@
   when: ansible_os_family == "RedHat"
   ansible.builtin.yum:
     name: httpd-tools
-    state: latest
+    state: present
+    # state: latest
 
 - name: Install htpasswd for Ubuntu
   when: ansible_os_family == "Ubuntu"
@@ -81,7 +82,7 @@
     password: password
     owner: root
     group: root
-    mode: 0640
+    mode: "0640"
 
 - name: Add user to auth
   community.general.htpasswd:

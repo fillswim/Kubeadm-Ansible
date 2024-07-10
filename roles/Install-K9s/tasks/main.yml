@@ -1,0 +1,11 @@
+---
+# tasks file for k9s
+
+- name: Скопировать K9s
+  become: true
+  ansible.builtin.copy:
+    src: k9s
+    dest: /usr/bin/k9s
+    owner: root
+    group: root
+    mode: "0755"

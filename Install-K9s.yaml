@@ -1,0 +1,6 @@
+---
+- name: Install K9s
+  hosts: k8s_masters
+
+  roles:
+    - role: Install-K9s

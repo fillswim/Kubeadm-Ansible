@@ -43,7 +43,7 @@ calico_operator_link:           "https://raw.githubusercontent.com/projectcalico
 # calicoctl
 calicoctl_link:                 "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/calicoctl.yaml"
 
-# MetalLB
+# MetalLB !!! Поменять IPAddressPool
 metallb_version:                0.13.12
 metallb_link:                   "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
 IPAddressPool:                  "192.168.2.217-192.168.2.219"

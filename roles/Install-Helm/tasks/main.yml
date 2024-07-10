@@ -17,7 +17,7 @@
     group: root
     mode: "0644"
 
-- name: Extract ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz into ~/download
+- name: Extract helm
   become: true
   ansible.builtin.unarchive:
     src: ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz
