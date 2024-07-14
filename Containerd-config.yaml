@@ -1,0 +1,7 @@
+---
+
+- name: Containerd config.toml
+  hosts: "all"
+
+  roles:
+    - role: Containerd-config

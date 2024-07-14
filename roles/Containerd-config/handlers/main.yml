@@ -1,0 +1,8 @@
+---
+# handlers file for Containerd-config
+
+- name: Restart containerd
+  become: true
+  ansible.builtin.service:
+    state: restarted
+    name: containerd
