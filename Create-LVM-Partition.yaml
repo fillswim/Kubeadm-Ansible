@@ -1,7 +1,8 @@
 ---
 - name: Create LVM Partition
   # hosts: k8s_workers
-  hosts: nexus_servers
+  # hosts: nexus_servers
+  hosts: all
 
   roles:
     - role: Create-LVM-Partition
