@@ -24,3 +24,8 @@ ansible-playbook -i inventory/nexus_servers.yaml Create-LVM-Partition.yaml -b
 ```bash
 ansible-playbook -i inventory/repository-ubuntu.ini Create-LVM-Partition.yaml -b
 ```
+
+## Repository Oracle Linux:
+```bash
+ansible-playbook -i inventory/repository-ol.ini Create-LVM-Partition.yaml -b
+```

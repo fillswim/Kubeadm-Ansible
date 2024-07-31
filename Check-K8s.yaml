@@ -1,0 +1,6 @@
+---
+- name: Check K8s
+  hosts: k8s_masters[0]
+
+  roles:
+    - role: check-k8s

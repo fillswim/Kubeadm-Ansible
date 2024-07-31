@@ -15,6 +15,7 @@
   when: ansible_os_family == "RedHat"
   vars:
     packages:
+      - parted
       - lvm2
       - xfsprogs
 

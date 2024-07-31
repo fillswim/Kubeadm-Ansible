@@ -1,0 +1,89 @@
+---
+# tasks file for check-k8s
+
+# ============================================== Ping ==============================================
+
+- name: Ping
+  become: true
+  ansible.builtin.ping:
+
+# ======================================= Nodes для inventory ======================================
+
+- name: Поиск нод
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get nodes -o wide | awk '{print $1,"ansible_ssh_host="$6}'
+  register: kubectl_nodes_for_inventory
+
+- name: Вывод списка нод для inventory
+  ansible.builtin.debug:
+    var: kubectl_nodes_for_inventory.stdout
+
+# ========================================= Nodes not Ready ========================================
+
+- name: Поиск нод "not Ready"
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get nodes -o wide | grep -iv Ready
+  register: kubectl_nodes
+
+- name: Вывод нод "not Ready"
+  ansible.builtin.debug:
+    var: kubectl_nodes.stdout
+
+# ======================================== Pods not Running ========================================
+
+- name: Поиск подов "not Running"
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get pods -A -o wide | grep -iv Running
+  register: kubectl_pods
+
+- name: Вывод подов "not Running"
+  ansible.builtin.debug:
+    var: kubectl_pods.stdout
+
+# ========================================= Тейнты на нодах ========================================
+
+- name: Поиск тейнтов на нодах
+  changed_when: false
+  ansible.builtin.shell: |
+    kubectl get nodes --no-headers | awk '{print $1}' | xargs kubectl describe node | grep 'Taints:\|Name:'
+  register: kubectl_taints
+
+- name: Вывод тейнтов на нодах
+  ansible.builtin.debug:
+    var: kubectl_taints.stdout
+
+# ======================================== Longhorn Settings =======================================
+
+- name: Проверка настроек Longhorn
+  ansible.builtin.shell: |
+    kubectl get lhs -n longhorn-system | grep 'current-longhorn-version\|priority-class\|replica-auto-balance\|storage-network\|taint-toleration'
+  register: kubectl_longhorn_settings
+
+- name: Вывод настроек Longhorn
+  ansible.builtin.debug:
+    var: kubectl_longhorn_settings.stdout
+
+# ========================================= Longhorn Nodes =========================================
+
+- name: Проверка утилизации дискового пространства на нодах Longhorn
+  ansible.builtin.shell: |
+    kubectl get lhn -n longhorn-system -o=jsonpath='{range .items[*]}{.metadata.name} {.spec.disks.*.path} {.status.diskStatus.*.storageAvailable} {.status.diskStatus.*.storageMaximum} {.status.diskStatus.*.storageScheduled}{"\n"}{end}' | grep str | awk '{print "Nodename:"$1 " Diskpath:"$2 " DiskAvailable:"$3 " DiskMaximum:"$4 " DiskScheduled:"$5" Used:"($5/$4)*100"%" }'
+  register: kubectl_lhn
+
+- name: Вывод утилизации дискового пространства на нодах Longhorn
+  ansible.builtin.debug:
+    var: kubectl_lhn.stdout
+
+# ======================================== Longhorn Volumes ========================================
+
+- name: Проверка утилизации дискового пространства в PVC
+  ansible.builtin.shell: |
+    kubectl get lhv -n longhorn-system  -o=jsonpath='{range .items[*]}{.metadata.name} {.status.kubernetesStatus.namespace} {.status.state} {.spec.size} {.status.actualSize}{"\n"}{end}' | awk '{print "Lhv:"$1 " Namespace:"$2 " State:"$3 " Size:"$4 " actualSize:"$5 " Used:"($5/$4)*100"%" }'
+  register: kubectl_lhv
+
+- name: Вывод утилизации дискового пространства в PVC
+  ansible.builtin.debug:
+    var: kubectl_lhv.stdout
