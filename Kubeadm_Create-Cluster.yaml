@@ -20,7 +20,7 @@
 
 - name: Adding-Other-Control-Nodes
   serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
-  order: sorted                       # Ноды будут выбираться в алфавитном порядке
+  order: inventory                    # Ноды будут выбираться в порядке, как в inventory
   hosts: all
   roles:
     - role: 04-Adding-Other-Nodes
@@ -30,15 +30,15 @@
   roles:
     - role: Install-Calicoctl
 
-- name: Install MetalLB
-  hosts: k8s_masters[0]
-  roles:
-    - role: Install-MetalLB
+# - name: Install MetalLB
+#   hosts: k8s_masters[0]
+#   roles:
+#     - role: Install-MetalLB
 
-- name: Install Helm
-  hosts: k8s_masters
-  roles:
-    - role: Install-Helm
+# - name: Install Helm
+#   hosts: k8s_masters
+#   roles:
+#     - role: Install-Helm
 
 # ========== Install Longhorn ==========
 

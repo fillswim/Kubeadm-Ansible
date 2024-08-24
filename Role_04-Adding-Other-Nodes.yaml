@@ -2,7 +2,7 @@
 
 - name: Adding-Other-Control-Nodes
   serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
-  order: sorted                       # Ноды будут выбираться в алфавитном порядке
+  order: inventory                    # Ноды будут выбираться в порядке, как в inventory
   hosts: all
 
   roles:

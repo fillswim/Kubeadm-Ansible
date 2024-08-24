@@ -2,14 +2,14 @@
 # vars file for Customization-Longhorn
 
 # (Поменять) Название группы с control plain нодами в inventory
-cpl_group_name:                       "k8s_masters"
+cpl_group_name: "k8s_masters"
 # cpl_group_name:                       "kube_control_plane"
 
 # (Не менять) Первая cpl нода клстера
-first_cpl_node:                       "{{ groups[ cpl_group_name ][0] }}"
+first_cpl_node: "{{ groups[ cpl_group_name ][0] }}"
 
 # Папка для Json на первой ноде кластера
-longhorn_project_folder:              "/root/longhorn_tmp"
+longhorn_project_folder: "/root/longhorn_tmp"
 
 
 # Значения для дефолтного диска Longhorn:
@@ -17,13 +17,13 @@ longhorn_project_folder:              "/root/longhorn_tmp"
 # longhorn_disk_mount_folder:           "/var/lib/longhorn"
 
 # Подлючаемый диск Longhorn
-longhorn_disk_name:                   "disk-1"
-longhorn_disk_mount_folder:           "/mnt/lh_disk1"
+longhorn_disk_name: "disk-1"
+longhorn_disk_mount_folder: "/mnt/lh_disk1"
 
 # Изменяемые глобальные настройки Longhorn
-longhorn_priorityclass_value:         2000001000
-longhorn_replica_auto_balance_mode:   best-effort
-longhorn_log_level_mode:              Trace
+longhorn_priorityclass_value: 2000001000
+longhorn_replica_auto_balance_mode: best-effort
+longhorn_log_level_mode: Trace
 
-longhorn_api_version:                 "longhorn.io/v1beta2"
-longhorn_namespace:                   "longhorn-system"
+longhorn_api_version: "longhorn.io/v1beta2"
+longhorn_namespace: "longhorn-system"
