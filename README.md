@@ -5,7 +5,7 @@ Activate .venv
 source .venv/bin/activate
 ```
 
-# ==================== K8s1 Oracle ===================
+# ========== K8s1 Oracle ==========
 
 ## Ping
 ansible-playbook -i inventory/k8s1_ol.yaml Role_Ping.yaml -b
@@ -21,7 +21,7 @@ ansible-playbook -i inventory/k8s1_ol.yaml Install-K9s.yaml -b
 ansible-playbook -i inventory/k8s1_ol.yaml Kubeadm_Reset-Cluster.yaml -b \
 ansible-playbook -i inventory/k8s1_ol.yaml Reboot.yaml -b
 
-# ==================== K8s1 Redos ====================
+# ========== K8s1 Redos =========
 
 ## Ping
 ansible-playbook -i inventory/k8s1_redos.yaml Role_Ping.yaml -b
