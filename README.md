@@ -31,4 +31,9 @@ ansible-playbook -i inventory/k8s1_redos.yaml Kubeadm_Create-Cluster.yaml -b \
 ansible-playbook -i inventory/k8s1_redos.yaml Install-MetalLB.yaml -b \
 ansible-playbook -i inventory/k8s1_redos.yaml Install-Helm.yaml -b \
 ansible-playbook -i inventory/k8s1_redos.yaml Install-IngressController.yaml -b \
-ansible-playbook -i inventory/k8s1_redos.yaml Install-K9s.yaml -b \
+ansible-playbook -i inventory/k8s1_redos.yaml Install-K9s.yaml -b
+ansible-playbook -i inventory/k8s1_redos.yaml Install-Metrics-Server.yaml -b
+
+## Reset Cluster
+ansible-playbook -i inventory/k8s1_redos.yaml Kubeadm_Reset-Cluster.yaml -b \
+ansible-playbook -i inventory/k8s1_redos.yaml Reboot.yaml -b

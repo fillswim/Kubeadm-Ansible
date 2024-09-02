@@ -60,7 +60,8 @@ mode: ipvs
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-clusterDNS:                                                         # Нужно установить на каждой ноде кластера
+serverTLSBootstrap: true
+clusterDNS:                                                                          # Нужно установить на каждой ноде кластера
 - {{ cluster_dns_server_ip }}                                                        # IP адреса DNS серверов кластера
 systemReserved:
   memory: 512Mi

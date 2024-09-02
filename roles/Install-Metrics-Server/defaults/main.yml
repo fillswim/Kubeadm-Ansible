@@ -1,0 +1,5 @@
+---
+# defaults file for Install-Metrics-Server
+
+manifest_name: "high-availability-1.21+.yaml"
+manistst_link: "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/{{ manifest_name }}"
