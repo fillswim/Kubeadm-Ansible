@@ -33,6 +33,6 @@
     chart_ref: "{{ grafana_full_chart_name }}"
     release_namespace: "{{ grafana_namespace }}"       # monitoring
     create_namespace: true
-    wait: True
+    wait: true
     values_files:
       - "{{ grafana_project_folder }}/grafana_values.yaml"

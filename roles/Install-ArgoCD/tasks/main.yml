@@ -1,0 +1,34 @@
+---
+# tasks file for Install-ArgoCD
+- name: Создание папки "{{ argocd_project_folder }}"
+  ansible.builtin.file:
+    path: "{{ argocd_project_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Copy values.yaml
+  become: true
+  ansible.builtin.template:
+    src: values.yaml.j2
+    dest: "{{ argocd_project_folder }}/values.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Add Argo CD helm repo
+  kubernetes.core.helm_repository:
+    name: "{{ argocd_helm_repo_name }}"
+    repo_url: "{{ argocd_helm_repo_url }}"
+
+- name: Install Argo CD with values.yaml
+  kubernetes.core.helm:
+    update_repo_cache: true
+    name: "{{ argocd_release_name }}"                  # my-argocd
+    chart_ref: "{{ argocd_full_chart_name }}"
+    release_namespace: "{{ argocd_namespace }}"        # argo-cd
+    create_namespace: true
+    wait: true
+    values_files:
+      - "{{ argocd_project_folder }}/values.yaml"

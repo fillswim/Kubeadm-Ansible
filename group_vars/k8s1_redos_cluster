@@ -74,3 +74,6 @@ prometheus_loadbalancer_ip:     192.168.2.118
 grafana_loadbalancer_ip:        192.168.2.119
 grafana_loadbalancer_port:      80
 grafana_ingress_url:            "grafana-k8s1-redos.fillswim.local"
+
+# Argo CD
+argocd_ingress_url:            "argocd-k8s1-redos.fillswim.local"

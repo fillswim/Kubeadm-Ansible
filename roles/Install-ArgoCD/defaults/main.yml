@@ -1,0 +1,14 @@
+---
+# defaults file for Install-ArgoCD
+
+# Project folder
+argocd_project_folder: "/root/argocd"
+
+# Releas
+argocd_release_name: "my-argocd"
+argocd_namespace: "argo-cd"
+
+# Helm Repo
+argocd_helm_repo_url: "https://argoproj.github.io/argo-helm"
+argocd_helm_repo_name: "argo"
+argocd_full_chart_name: "{{ argocd_helm_repo_name }}/argo-cd" # argo/argo-cd

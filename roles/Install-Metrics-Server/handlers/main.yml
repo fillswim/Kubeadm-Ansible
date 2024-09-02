@@ -1,8 +1,0 @@
----
-# handlers file for Install-Metrics-Server
-
-- name: Restart kubelet
-  become: true
-  ansible.builtin.service:
-    state: restarted
-    name: kubelet
