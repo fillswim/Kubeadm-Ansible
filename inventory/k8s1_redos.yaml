@@ -12,9 +12,13 @@ k8s_masters:
 k8s_workers:
   hosts:
     k8s1-redos-app01.fillswim.local:
-      ansible_host: 192.168.2.114
+      ansible_host: 192.168.2.116
     k8s1-redos-app02.fillswim.local:
-      ansible_host: 192.168.2.115
+      ansible_host: 192.168.2.117
+    k8s1-redos-app03.fillswim.local:
+      ansible_host: 192.168.2.118
+    k8s1-redos-app04.fillswim.local:
+      ansible_host: 192.168.2.119
 
 k8s1_redos_cluster:
   children:
