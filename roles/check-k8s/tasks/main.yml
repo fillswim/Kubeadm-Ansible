@@ -18,6 +18,8 @@
     - name: Задать вопрос
       ansible.builtin.pause:
         prompt: |
+          Для запуска всех проверокнаберите                                             - all
+          Или по отдельности:
           Для проверки нод кластера наберите                                            - nodes
           Для вывода тейнтов на нодах кластера наберите                                 - taints
           Для проверки всех подов кластера наберите                                     - pods
@@ -41,7 +43,7 @@
 
 - name: Блок "nodes"
   when:
-    - "hostvars[groups['all'][0]].answer == 'nodes'"
+    - "hostvars[groups['all'][0]].answer == 'nodes' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Поиск нод "not Ready"
@@ -59,7 +61,7 @@
 
 - name: Блок "pods"
   when:
-    - "hostvars[groups['all'][0]].answer == 'pods'"
+    - "hostvars[groups['all'][0]].answer == 'pods' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Поиск подов "not Running"
@@ -77,7 +79,7 @@
 
 - name: Блок "lhn"
   when:
-    - "hostvars[groups['all'][0]].answer == 'lhn'"
+    - "hostvars[groups['all'][0]].answer == 'lhn' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Поиск нод Longhorn
@@ -95,7 +97,7 @@
 
 - name: Блок "lhv"
   when:
-    - "hostvars[groups['all'][0]].answer == 'lhv'"
+    - "hostvars[groups['all'][0]].answer == 'lhv' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Поиск PVC
@@ -113,7 +115,7 @@
 
 - name: Блок "taints"
   when:
-    - "hostvars[groups['all'][0]].answer == 'taints'"
+    - "hostvars[groups['all'][0]].answer == 'taints' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Поиск тейнтов на нодах
@@ -131,7 +133,7 @@
 
 - name: Блок "lhs"
   when:
-    - "hostvars[groups['all'][0]].answer == 'lhs'"
+    - "hostvars[groups['all'][0]].answer == 'lhs' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Проверка настроек Longhorn
@@ -149,7 +151,7 @@
 
 - name: Блок "lhn_util"
   when:
-    - "hostvars[groups['all'][0]].answer == 'lhn_util'"
+    - "hostvars[groups['all'][0]].answer == 'lhn_util' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Проверка утилизации дискового пространства на нодах Longhorn
@@ -167,7 +169,7 @@
 
 - name: Блок "lhv_util"
   when:
-    - "hostvars[groups['all'][0]].answer == 'lhv_util'"
+    - "hostvars[groups['all'][0]].answer == 'lhv_util' or hostvars[groups['all'][0]].answer == 'all'"
   block:
 
     - name: Проверка утилизации дискового пространства в PVC
