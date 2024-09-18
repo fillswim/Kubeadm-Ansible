@@ -33,7 +33,7 @@
     chart_ref: "{{ prometheus_full_chart_name }}"
     release_namespace: "{{ prometheus_namespace }}"       # monitoring
     create_namespace: true
-    wait: True
+    wait: true
     values_files:
       - "{{ prometheus_project_folder }}/Prometheus_LoadBalancer.yaml"
 
