@@ -20,8 +20,8 @@
 - name: Copy values.yaml
   become: true
   ansible.builtin.copy:
-    src: values.yaml
-    dest: "{{ longhorn_project_folder }}/values.yaml"
+    src: longhorn-values-2024-11-14.yaml
+    dest: "{{ longhorn_project_folder }}/longhorn-values-2024-11-14.yaml"
     owner: root
     group: root
     mode: "0644"
@@ -31,18 +31,7 @@
     name: "{{ longhorn_helm_repo_name }}"
     repo_url: "{{ longhorn_helm_repo_url }}"
 
-# - name: Install Longhorn with values.yaml
-#   kubernetes.core.helm:
-#     update_repo_cache: true
-#     name: "{{ longhorn_release_name }}"                 # longhorn
-#     chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
-#     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
-#     create_namespace: true
-#     wait: True
-#     values_files:
-#       - "{{ longhorn_project_folder }}/values.yaml"
-
-- name: Install Longhorn by default
+- name: Install Longhorn with values.yaml
   kubernetes.core.helm:
     update_repo_cache: true
     name: "{{ longhorn_release_name }}"                 # longhorn
@@ -50,6 +39,17 @@
     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
     create_namespace: true
     wait: true
+    values_files:
+      - "{{ longhorn_project_folder }}/longhorn-values-2024-11-14.yaml"
+
+# - name: Install Longhorn by default
+#   kubernetes.core.helm:
+#     update_repo_cache: true
+#     name: "{{ longhorn_release_name }}"                 # longhorn
+#     chart_ref: "{{ longhorn_full_chart_name }}"         # longhorn/longhorn
+#     release_namespace: "{{ longhorn_namespace }}"       # longhorn-system
+#     create_namespace: true
+#     wait: true
 
 # =============================== Longhorn GUI с авторизацией (Ingress) ============================
 
@@ -89,6 +89,9 @@
     path: "{{ htpasswd_file_path }}"
     name: user
     password: password
+    owner: root
+    group: root
+    mode: "0640"
 
 # ================ Convert htpasswd file to secret ================
 

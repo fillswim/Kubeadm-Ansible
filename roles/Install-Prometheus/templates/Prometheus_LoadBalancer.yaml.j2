@@ -22,3 +22,11 @@ prometheus:
     ## Service type
     ##
     type: LoadBalancer
+
+  prometheusSpec:
+
+    ## EnableAdminAPI enables Prometheus the administrative HTTP API which includes functionality such as deleting time series.
+    ## This is disabled by default.
+    ## ref: https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-admin-apis
+    ##
+    enableAdminAPI: true

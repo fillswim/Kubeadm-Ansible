@@ -1,6 +1,6 @@
 ---
 ansible_user:                   root
-ansible_ssh_private_key_file:   /home/fill/.ssh/id_rsa
+ansible_ssh_private_key_file:   /home/fill/.ssh/id_ed25519
 ansible_python_interpreter:     auto_silent
 
 # Nexus
@@ -64,11 +64,11 @@ fs_type:                        "xfs"
 ingress_controller_ip:          192.168.2.217
 
 # Longhorn Install
-longhorn_loadbalancer_ip:       192.168.2.218
+# longhorn_loadbalancer_ip:       192.168.2.218
 longhorn_ingress_url:           "longhorn.fillswim.local"
 
 # Prometheus Install
-prometheus_loadbalancer_ip:     192.168.2.218
+prometheus_loadbalancer_ip:     192.168.2.226
 
 # Grafana Install
 grafana_loadbalancer_ip:        192.168.2.219

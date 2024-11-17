@@ -2,14 +2,13 @@
 # vars file for Install-Prometheus
 
 # Project folder
-prometheus_project_folder:      "/root/prometheus"
+prometheus_project_folder: "/root/prometheus"
 
 # Releas
-prometheus_release_name:        "my-prometheus"
-prometheus_namespace:           "monitoring"
+prometheus_release_name: "my-prometheus"
+prometheus_namespace: "monitoring"
 
 # Prometheus-community Repo
-prometheus_helm_repo_name:      "prometheus-community"
-prometheus_helm_repo_url:       "https://prometheus-community.github.io/helm-charts"
-prometheus_full_chart_name:     "{{ prometheus_helm_repo_name }}/kube-prometheus-stack"
-
+prometheus_helm_repo_name: "prometheus-community"
+prometheus_helm_repo_url: "https://prometheus-community.github.io/helm-charts"
+prometheus_full_chart_name: "{{ prometheus_helm_repo_name }}/kube-prometheus-stack"

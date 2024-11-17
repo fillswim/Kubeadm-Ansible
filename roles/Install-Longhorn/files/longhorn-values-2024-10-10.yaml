@@ -1,0 +1,25 @@
+defaultSettings:
+  defaultDataPath: /var/lib/longhorn
+  replicaAutoBalance: best-effort
+  taintToleration: key1=value1:NoSchedule
+
+longhornManager:
+  tolerations:
+  - key: "key1"
+    operator: "Equal"
+    value: "value1"
+    effect: "NoSchedule"
+
+longhornDriver:
+  tolerations:
+  - key: "key1"
+    operator: "Equal"
+    value: "value1"
+    effect: "NoSchedule"
+
+longhornUI:
+  tolerations:
+  - key: "key1"
+    operator: "Equal"
+    value: "value1"
+    effect: "NoSchedule"
