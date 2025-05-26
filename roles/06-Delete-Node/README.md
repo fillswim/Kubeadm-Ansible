@@ -11,7 +11,10 @@ ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra
 ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n01.fillswim.local"
 ```
 ```bash
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n01.fillswim.local"
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n02.fillswim.local"
 ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n03.fillswim.local"
+ansible-playbook -i inventory/k8s1_rhel.yaml Role_06-Delete-Node.yaml -b --extra-vars "deleted_node=k8s1-rhel-str-n04.fillswim.local"
 ```
 
 

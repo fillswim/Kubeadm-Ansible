@@ -1,0 +1,9 @@
+---
+
+- name: Enable SCR
+  order: inventory
+  serial: 1
+  hosts: "all"
+
+  roles:
+    - role: Enable-SCR

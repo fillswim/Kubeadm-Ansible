@@ -4,14 +4,15 @@
 
 # ============================================== Ping ==============================================
 
-#- name: Ping
-#  become: true
-#  ansible.builtin.ping:
+# - name: Ping
+#   become: true
+#   ansible.builtin.ping:
 
 # ======================================= Get node k8s version =====================================
 
 - name: Check node k8s version
   delegate_to: "{{ groups['k8s_masters'][0] }}"
+  changed_when: false
   ansible.builtin.shell: |
     kubectl get nodes {{ inventory_hostname }} -o=jsonpath='{.status.nodeInfo.kubeletVersion}'
   register: node_k8s_current_version
@@ -36,11 +37,22 @@
 
 - name: Block on the 1-st Master
   become: true
-  when:
-    - node_k8s_current_version != future_k8s_version                # Выполняется, исли текущая версия отличается от желаемой
+  # when:
+  #   - node_k8s_current_version != future_k8s_version                # Выполняется, исли текущая версия отличается от желаемой
   block:
 
     # ========================== Get join_path ==========================
+
+    - name: Add kubernetes repository
+      ansible.builtin.yum_repository:
+        name: kubernetes
+        file: kubernetes
+        description: kubernetes
+        baseurl: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/"
+        enabled: true
+        gpgcheck: true
+        gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/repodata/repomd.xml.key"
+        exclude: "kubelet kubeadm kubectl cri-tools kubernetes-cni"
 
     - name: Update kubeadm, kubelet and kubectl
       when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
@@ -57,10 +69,10 @@
 
     # =========================== Drain node ============================
 
-    - name: Drain {{ inventory_hostname }}
-      delegate_to: "{{ groups['k8s_masters'][0] }}"
-      ansible.builtin.shell: |
-        kubectl drain {{ inventory_hostname }} --ignore-daemonsets
+    # - name: Drain {{ inventory_hostname }}
+    #   delegate_to: "{{ groups['k8s_masters'][0] }}"
+    #   ansible.builtin.shell: |
+    #     kubectl drain {{ inventory_hostname }} --ignore-daemonsets
 
     # ========================= Kubeadm update ==========================
 
@@ -70,7 +82,7 @@
         kubeadm upgrade apply {{ future_k8s_version }} -y
       when:
         - inventory_hostname == groups['k8s_masters'][0]            # Выполняется только на 1-м Мастере
-    
+
     - name: Update {{ inventory_hostname }}
       become: true
       ansible.builtin.shell: |
@@ -89,7 +101,7 @@
 
     # ========================== Uncordon node ==========================
 
-    - name: Uncordon {{ inventory_hostname }}
-      delegate_to: "{{ groups['k8s_masters'][0] }}"
-      ansible.builtin.shell: |
-        kubectl uncordon {{ inventory_hostname }}
+    # - name: Uncordon {{ inventory_hostname }}
+    #   delegate_to: "{{ groups['k8s_masters'][0] }}"
+    #   ansible.builtin.shell: |
+    #     kubectl uncordon {{ inventory_hostname }}

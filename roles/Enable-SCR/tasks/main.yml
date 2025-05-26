@@ -1,0 +1,40 @@
+---
+
+- name: Block on the 1-st Master
+  become: true
+  when:
+    - inventory_hostname == groups['k8s_masters'][0]      # Выполняется только на 1-м Мастере
+  block:
+
+    - name: Создание папки "kubelet-config"
+      ansible.builtin.file:
+        path: /root/kubelet-config
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
+    - name: Скопировать "kubelet-config.yaml"
+      become: true
+      ansible.builtin.copy:
+        src: kubelet-config.yaml
+        dest: /root/kubelet-config/kubelet-config.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Apply "kubelet-config.yaml"
+      kubernetes.core.k8s:
+        src: /root/kubelet-config/kubelet-config.yaml
+        state: present
+
+- name: Скопировать config.yaml
+  become: true
+  ansible.builtin.copy:
+    src: config.yaml
+    dest: /var/lib/kubelet/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart kubelet
