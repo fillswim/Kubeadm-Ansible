@@ -1,11 +1,38 @@
 ---
 # tasks file for k9s
 
+- name: Создание временной папки
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+# wget https://github.com/derailed/k9s/releases/download/v0.50.6/k9s_Linux_amd64.tar.gz
+- name: Скачать k9s
+  ansible.builtin.get_url:
+    url: "https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
+    dest: "{{ temp_folder }}/k9s_Linux_amd64.tar.gz"
+    mode: '0755'
+
+- name: Распаковать k9s
+  ansible.builtin.unarchive:
+    src: "{{ temp_folder }}/k9s_Linux_amd64.tar.gz"
+    dest: "{{ temp_folder }}"
+    remote_src: true
+
 - name: Скопировать K9s
   become: true
   ansible.builtin.copy:
-    src: k9s
+    src: "{{ temp_folder }}/k9s"
     dest: /usr/bin/k9s
     owner: root
     group: root
     mode: "0755"
+    remote_src: true
+
+- name: Удалить директорию "{{ temp_folder }}"
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: absent

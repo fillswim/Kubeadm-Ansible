@@ -10,6 +10,7 @@ ansible-playbook -i inventory/k8s1_rhel.yaml ping.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Create-LVM-Partition.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Enable-SCR.yaml -b
+ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
 
 
 # ============== K8s1 Oracle =============

@@ -74,3 +74,6 @@ prometheus_loadbalancer_ip:     192.168.2.226
 grafana_loadbalancer_ip:        192.168.2.219
 grafana_loadbalancer_port:      80
 grafana_ingress_url:            "grafana.fillswim.local"
+
+# K9s
+k9s_version:                    "0.50.6"
