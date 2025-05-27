@@ -21,7 +21,7 @@ data:
         cacheUnauthorizedTTL: 0s
     cgroupDriver: systemd
     clusterDNS:
-    - 10.96.0.10
+    - {{ cluster_dns_server_ip }}
     clusterDomain: cluster.local
     containerRuntimeEndpoint: ""
     cpuManagerReconcilePeriod: 0s
