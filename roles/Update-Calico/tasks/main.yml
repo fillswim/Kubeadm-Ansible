@@ -1,0 +1,29 @@
+---
+
+- name: Download "operator-crds.yaml"
+  ansible.builtin.get_url:
+    url: "{{ calico_operator_crds_link }}"
+    dest: "{{ project_folder }}/operator-crds-{{ calico_operator_version }}.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Download "tigera-operator.yaml"
+  ansible.builtin.get_url:
+    url: "{{ calico_operator_link }}"
+    dest: "{{ project_folder }}/tigera-operator-{{ calico_operator_version }}.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply "operator-crds.yaml"
+  ansible.builtin.shell: |
+    kubectl apply --server-side --force-conflicts -f {{ project_folder }}/operator-crds-{{ calico_operator_version }}.yaml
+  args:
+    chdir: "{{ project_folder }}"
+
+- name: Apply "tigera-operator.yaml"
+  ansible.builtin.shell: |
+    kubectl apply --server-side --force-conflicts -f {{ project_folder }}/tigera-operator-{{ calico_operator_version }}.yaml
+  args:
+    chdir: "{{ project_folder }}"

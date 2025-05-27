@@ -11,7 +11,8 @@ ansible-playbook -i inventory/k8s1_rhel.yaml Create-LVM-Partition.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Enable-SCR.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
-
+ansible-playbook -i inventory/k8s1_rhel.yaml Update-Calico.yaml -b
+ansible-playbook -i inventory/k8s1_rhel.yaml Install-Helm.yaml -b
 
 # ============== K8s1 Oracle =============
 

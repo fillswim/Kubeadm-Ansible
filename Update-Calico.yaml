@@ -1,0 +1,6 @@
+---
+- name: Update Calico
+  hosts: k8s_masters[0]
+
+  roles:
+    - role: Update-Calico

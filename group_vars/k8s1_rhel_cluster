@@ -39,7 +39,8 @@ cluster_dns_server_ip:          10.96.0.10
 nodelocaldns_local_ip:          169.254.25.10
 
 # CNI Driver (Calico)
-calico_operator_version:        3.26.3
+calico_operator_version:        3.30.0
+calico_operator_crds_link:      "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/operator-crds.yaml"
 calico_operator_link:           "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/tigera-operator.yaml"
 
 # calicoctl
@@ -51,7 +52,7 @@ metallb_link:                   "https://raw.githubusercontent.com/metallb/metal
 IPAddressPool:                  "192.168.2.217-192.168.2.219"
 
 # Helm
-helm_version:                   3.13.3
+helm_version:                   3.18.0
 helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
 
 # LVM
