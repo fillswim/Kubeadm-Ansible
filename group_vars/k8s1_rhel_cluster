@@ -62,7 +62,8 @@ mount_folder:                   "/mnt/lh_disk1"
 fs_type:                        "xfs"
 
 # Ingress Controller
-ingress_controller_ip:          192.168.2.217
+ingress_controller_ip:          192.168.2.225
+ingress_controller_version:     1.12.2
 
 # Longhorn Install
 # longhorn_loadbalancer_ip:       192.168.2.218

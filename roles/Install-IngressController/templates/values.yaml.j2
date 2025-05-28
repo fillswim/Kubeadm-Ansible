@@ -1,4 +1,7 @@
 controller:
+  image:
+    tag: "v{{ ingress_controller_version }}"
   service:
     type: LoadBalancer
     loadBalancerIP: "{{ ingress_controller_ip }}"
+  progressDeadlineSeconds: 30

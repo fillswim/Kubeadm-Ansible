@@ -9,9 +9,9 @@
 
 # ==================================== Install IngressController ===================================
 
-- name: Создание папки /root/IngressController
+- name: Создание папки "{{ project_folder }}"
   ansible.builtin.file:
-    path: /root/IngressController
+    path: "{{ project_folder }}"
     state: directory
     owner: root
     group: root
@@ -21,7 +21,7 @@
   become: true
   ansible.builtin.template:
     src: values.yaml.j2
-    dest: /root/IngressController/values.yaml
+    dest: "{{ project_folder }}/values.yaml"
     owner: root
     group: root
     mode: "0644"
@@ -39,4 +39,4 @@
     release_namespace: "{{ nginx_ingress_namespace }}"  # ingress-nginx
     create_namespace: true
     values_files:
-      - /root/IngressController/values.yaml
+      - "{{ project_folder }}/values.yaml"
