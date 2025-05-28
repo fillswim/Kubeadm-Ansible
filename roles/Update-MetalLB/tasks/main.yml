@@ -1,0 +1,14 @@
+---
+
+- name: Download "metallb-native.yaml"
+  ansible.builtin.get_url:
+    url: "{{ metallb_link }}"
+    dest: "{{ project_folder }}/metallb-native-{{ metallb_version }}.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install MetalLB
+  kubernetes.core.k8s:
+    src: "{{ project_folder }}/metallb-native-{{ metallb_version }}.yaml"
+    state: present
