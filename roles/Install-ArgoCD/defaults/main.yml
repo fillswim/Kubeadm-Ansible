@@ -5,7 +5,7 @@
 argocd_project_folder: "/root/argocd"
 
 # Releas
-argocd_release_name: "my-argocd"
+argocd_release_name: "my-argo"
 argocd_namespace: "argo-cd"
 
 # Helm Repo

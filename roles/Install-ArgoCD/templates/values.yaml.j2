@@ -1,6 +1,14 @@
 # HA mode with autoscaling
+global:
+  image:
+    repository: "{{ argocd_image_repository }}"
+    tag: "{{ argocd_version }}"
+
 redis-ha:
   enabled: true
+  image:
+    repository: "{{ redis_ha_image_repository }}"
+    tag: "{{ redis_ha_version }}"
 
 controller:
   replicas: 1

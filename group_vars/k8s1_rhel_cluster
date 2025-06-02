@@ -79,3 +79,15 @@ grafana_ingress_url:            "grafana.fillswim.local"
 
 # K9s
 k9s_version:                    "0.50.6"
+
+# ArgoCD
+argocd_image_repository:        "quay.io/argoproj/argocd"
+argocd_version:                 "v3.0.4"
+## Redis HA (BSD-3 license)
+redis_ha_image_repository:      "public.ecr.aws/docker/library/redis"
+redis_ha_version:               "7.4.1-alpine"
+## Redis HA (Open Source)
+# redis_ha_image_repository:      "ecr-public.aws.com/docker/library/redis"
+# redis_ha_version:               "7.2.8-alpine"
+
+argocd_ingress_url:             "argocd.fillswim.local"
