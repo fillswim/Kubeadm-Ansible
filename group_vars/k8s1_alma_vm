@@ -1,0 +1,93 @@
+---
+ansible_user:                   cloud-user
+ansible_ssh_private_key_file:   /home/fill/.ssh/id_ed25519
+ansible_python_interpreter:     auto_silent
+
+# # Nexus
+# nexus_image_repository:         "nexus.fillswim.local"
+
+# kubernetes_major_version:       "1.33"
+# kubernetes_minor_version:       "1.33.0"
+
+# containerd_version:             "2.1.1"
+# runc_version:                   "1.3.0"
+# cni_plugins_version:            "1.7.1"
+
+# # Cluster Settings
+# cluster_name:                   cluster.local
+
+# # Node Endpoint
+# node_control_plane_port:        6443
+
+# # Cluster Endpoint
+# cluster_control_plane_vip:      192.168.2.210
+# cluster_control_plane_port:     7443
+
+# # CNI Socket
+# path_to_cri_socket:             "unix:///var/run/containerd/containerd.sock"
+
+# # Repository
+# image_repository:               "registry.k8s.io"
+
+# # Network
+# cluster_pod_network:            "10.244.0.0/24"
+# cluster_pod_network_ports:      30000-32767
+# cluster_service_network:        "10.96.0.0/16"
+
+# # DNS
+# cluster_dns_server_ip:          10.96.0.10
+# nodelocaldns_local_ip:          169.254.25.10
+
+# # CNI Driver (Calico)
+# calico_operator_version:        3.30.0
+# calico_operator_crds_link:      "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/operator-crds.yaml"
+# calico_operator_link:           "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/tigera-operator.yaml"
+
+# # calicoctl
+# calicoctl_link:                 "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_operator_version }}/manifests/calicoctl.yaml"
+
+# # MetalLB !!! Поменять IPAddressPool
+# metallb_version:                0.14.9
+# metallb_link:                   "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
+# IPAddressPool:                  "192.168.2.217-192.168.2.219"
+
+# # Helm
+# helm_version:                   3.18.0
+# helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+
+# # LVM
+# disk_name:                      "sdb"
+# lvm_project_name:               "longhorn"
+# mount_folder:                   "/mnt/lh_disk1"
+# fs_type:                        "xfs"
+
+# # Ingress Controller
+# ingress_controller_ip:          192.168.2.225
+# ingress_controller_version:     1.12.2
+
+# # Longhorn Install
+# # longhorn_loadbalancer_ip:       192.168.2.218
+# longhorn_ingress_url:           "longhorn.fillswim.local"
+
+# # Prometheus Install
+# prometheus_loadbalancer_ip:     192.168.2.226
+
+# # Grafana Install
+# grafana_loadbalancer_ip:        192.168.2.219
+# grafana_loadbalancer_port:      80
+# grafana_ingress_url:            "grafana.fillswim.local"
+
+# # K9s
+# k9s_version:                    "0.50.6"
+
+# # ArgoCD
+# argocd_image_repository:        "quay.io/argoproj/argocd"
+# argocd_version:                 "v3.0.4"
+# ## Redis HA (BSD-3 license)
+# redis_ha_image_repository:      "public.ecr.aws/docker/library/redis"
+# redis_ha_version:               "7.4.1-alpine"
+# ## Redis HA (Open Source)
+# # redis_ha_image_repository:      "ecr-public.aws.com/docker/library/redis"
+# # redis_ha_version:               "7.2.8-alpine"
+
+# argocd_ingress_url:             "argocd.fillswim.local"
