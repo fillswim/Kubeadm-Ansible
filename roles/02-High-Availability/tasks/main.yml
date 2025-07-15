@@ -1,5 +1,7 @@
 ---
+
 # tasks file for 02-High-Availability
+
 - name: Set sysctl
   ansible.posix.sysctl:
     name: "net.ipv4.ip_nonlocal_bind"
@@ -9,47 +11,26 @@
     ignoreerrors: true
 
 - name: Install packages RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   ansible.builtin.dnf:
     name:
       - keepalived
       - haproxy
     state: present
 
-- name: Copy keepalived.conf to master
+- name: Copy keepalived.conf
   ansible.builtin.template:
     src: keepalived.j2
     dest: /etc/keepalived/keepalived.conf
     mode: '0644'
-  register: keepalived_conf
+  notify:
+    - Restart keepalived
 
-- name: Enable keepalived
-  ansible.builtin.service:
-    name: keepalived
-    state: started
-    enabled: true
-
-- name: Copy haproxy haproxy.cfg
+- name: Copy haproxy.cfg
   ansible.builtin.template:
     src: haproxy.j2
     dest: /etc/haproxy/haproxy.cfg
     mode: '0644'
-  register: haproxy_conf
-
-- name: Enable haproxy
-  ansible.builtin.service:
-    name: haproxy
-    state: started
-    enabled: true
-
-- name: Restart keepalived
-  when: keepalived_conf.changed
-  ansible.builtin.service:
-    name: keepalived
-    state: restarted
-
-- name: Restart haproxy
-  when: haproxy_conf.changed
-  ansible.builtin.service:
-    name: haproxy
-    state: restarted
+  notify:
+    - Restart haproxy

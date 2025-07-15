@@ -3,15 +3,15 @@
 # ansible-playbook -i inventory/k8s1_rhel.yaml Kubeadm_Create-Cluster.yaml -b
 # ansible-playbook -i inventory/k8s1_ol.yaml Kubeadm_Create-Cluster.yaml -b
 
-- name: Prepare VM for K8s
-  hosts: "all"
-  roles:
-    - role: 01-preparation-k8s
-
-# - name: High Availability
-#   hosts: k8s_masters
+# - name: Prepare VM for K8s
+#   hosts: "all"
 #   roles:
-#     - role: 02-High-Availability
+#     - role: 01-preparation-k8s
+
+- name: High Availability
+  hosts: k8s_masters
+  roles:
+    - role: 02-High-Availability
 
 # - name: Install 1st Control Node
 #   hosts: k8s_masters[0]
