@@ -13,10 +13,10 @@
   ansible.builtin.meta: end_play
   when: # extra_vars added_node определен и added_node нет ни в k8s_masters, ни в k8s_workers
     - (added_node is defined)
-      and 
-      ((added_node not in groups['k8s_masters']) 
-      and 
-      (added_node not in groups['k8s_workers']))           
+      and
+      ((added_node not in groups['k8s_masters'])
+      and
+      (added_node not in groups['k8s_workers']))
 
 # ======================================= Block on Master[1] =======================================
 
@@ -49,8 +49,8 @@
       ansible.builtin.meta: end_play
       when: # extra_vars added_node определен и added_node уже находится в перечне нод кластера
         - (added_node is defined)
-          and 
-          (added_node in all_added_nodes)  
+          and
+          (added_node in all_added_nodes)
 
     # ========================= Get join_path =========================
 
@@ -119,10 +119,10 @@
     - (inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes)
       and
       ((added_node is undefined) and (inventory_hostname in groups['k8s_masters'][1:]))
-      or 
-      ((added_node is defined) 
-        and (inventory_hostname in added_node) 
-        and ("'master' in added_node") 
+      or
+      ((added_node is defined)
+        and (inventory_hostname in added_node)
+        and ("'master' in added_node")
         and (added_node in groups['k8s_masters'][1:]))
   block:
 
@@ -175,9 +175,9 @@
     - (inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes)
       and
       ((added_node is undefined) and (inventory_hostname in groups['k8s_workers']))
-      or 
-      ((added_node is defined) 
-        and (inventory_hostname in added_node) 
+      or
+      ((added_node is defined)
+        and (inventory_hostname in added_node)
         and (added_node in groups['k8s_workers']))
   block:
 

@@ -9,15 +9,17 @@
 
 # ======================================== Install packages ========================================
 
-- name: Install pip for RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
+- name: Install python3-pip for RedHat
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   become: true
   ansible.builtin.dnf:
     name: python3-pip
     state: present
 
-- name: Install pip for Ubuntu
-  when: ansible_os_family == "Ubuntu"
+- name: Install python3-pip for Ubuntu
+  when:
+    - ansible_os_family == "Debian"
   become: true
   ansible.builtin.apt:
     name: python3-pip
@@ -26,13 +28,16 @@
 # ========================================== Disable Swap ==========================================
 
 - name: Check is swap enable
-  ansible.builtin.shell: swapon
+  ansible.builtin.shell: |
+    swapon
   register: swap_present
   changed_when: false
   ignore_errors: true
 
 - name: If swap is enabled - disable it
-  ansible.builtin.shell: swapoff -a
+  ansible.builtin.shell: |
+    set -o pipefail
+    swapoff -a
   when: swap_present.stdout != ""
 
 - name: Disable SWAP in fstab
@@ -44,7 +49,9 @@
 # ======================================== Disable firewall ========================================
 
 - name: Disable firewalld
-  when: ansible_os_family == "RedHat"
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution == "RedHat"
   ansible.builtin.service:
     name: firewalld
     state: stopped
@@ -129,7 +136,7 @@
 
 - name: Download containerd
   ansible.builtin.get_url:
-    url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+    url: "{{ containerd_url }}"
     dest: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
     owner: root
     group: root
@@ -152,7 +159,7 @@
 
 - name: Download containerd.service
   ansible.builtin.get_url:
-    url: "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+    url: "{{ containerd_service_url }}"
     dest: /usr/local/lib/systemd/system/containerd.service
     owner: root
     group: root
@@ -180,7 +187,7 @@
 
 - name: Download Runc
   ansible.builtin.get_url:
-    url: "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
+    url: "{{ runc_url }}"
     dest: /root/download/runc.amd64
     owner: root
     group: root
@@ -200,7 +207,7 @@
 
 - name: Download CNI plugin
   ansible.builtin.get_url:
-    url: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+    url: "{{ cni_plugins_url }}"
     dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
     owner: root
     group: root
@@ -224,7 +231,8 @@
 # ============================= Installing kubeadm, kubelet and kubectl ============================
 
 - name: Block for RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   become: true
   block:
     - name: Add kubernetes repository
@@ -238,16 +246,27 @@
         gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/repodata/repomd.xml.key"
         exclude: "kubelet kubeadm kubectl cri-tools kubernetes-cni"
 
-    - name: Install kubeadm, kubelet and kubectl
-      ansible.builtin.yum:
-        name: "{{ packages }}"
+    # - name: Install kubeadm, kubelet and kubectl
+    #   ansible.builtin.yum:
+    #     name: "{{ packages }}"
+    #     disable_excludes: all
+    #     exclude: kubernetes
+    #   vars:
+    #     packages:
+    #       - kubeadm-{{ kubernetes_minor_version }}-*
+    #       - kubelet-{{ kubernetes_minor_version }}-*
+    #       - kubectl-{{ kubernetes_minor_version }}-*
+
+    - name: Install kubeadm, kubelet, and kubectl using dnf
+      ansible.builtin.dnf:
+        name:
+          - "kubeadm-{{ kubernetes_minor_version }}-*"
+          - "kubelet-{{ kubernetes_minor_version }}-*"
+          - "kubectl-{{ kubernetes_minor_version }}-*"
         disable_excludes: all
         exclude: kubernetes
-      vars:
-        packages:
-          - kubeadm-{{ kubernetes_minor_version }}-*
-          - kubelet-{{ kubernetes_minor_version }}-*
-          - kubectl-{{ kubernetes_minor_version }}-*
+        state: present
+
 
 - name: Start and enable kubelet
   ansible.builtin.service:
@@ -258,18 +277,28 @@
 # ================================= Installing packages for Longhorn ===============================
 
 - name: Install packages for Longhorn on RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  ansible.builtin.yum:
-    name: "{{ packages }}"
-  vars:
-    packages:
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
+  ansible.builtin.dnf:
+    name:
       - iscsi-initiator-utils
       - udisks2-iscsi
       - cifs-utils
       - nfs-utils
 
+  # ansible.builtin.yum:
+  #   name: "{{ packages }}"
+  # vars:
+  #   packages:
+  #     - iscsi-initiator-utils
+  #     - udisks2-iscsi
+  #     - cifs-utils
+  #     - nfs-utils
+
+
 - name: Install packages for Longhorn on Ubuntu
-  when: ansible_os_family == "Ubuntu"
+  when:
+    - ansible_os_family == "Ubuntu"
   ansible.builtin.apt:
     pkg:
       - open-iscsi

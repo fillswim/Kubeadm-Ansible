@@ -47,14 +47,14 @@ networking:
 scheduler: {}
 
 # ===================================== KubeProxyConfiguration ======================================
----
-apiVersion: kubeproxy.config.k8s.io/v1alpha1
-kind: KubeProxyConfiguration
-bindAddress: 0.0.0.0
-clusterCIDR: {{ '\"' + cluster_pod_network + '\"' }}                                            # Сеть для подов
-ipvs:
-  strictARP: True
-mode: ipvs
+# ---
+# apiVersion: kubeproxy.config.k8s.io/v1alpha1
+# kind: KubeProxyConfiguration
+# bindAddress: 0.0.0.0
+# clusterCIDR: {{ '\"' + cluster_pod_network + '\"' }}                                            # Сеть для подов
+# ipvs:
+#   strictARP: True
+# mode: ipvs
 
 # ====================================== KubeletConfiguration =======================================
 ---

@@ -37,8 +37,18 @@
     group: root
     mode: "0644"
 
-- name: Kubeadm Init
+- name: Kubeadm Init with kube-proxy
+  when:
+    - not ciliun_enabled
   ansible.builtin.shell: kubeadm init --config /root/kubeadm/kubeadm-config.yaml
+  register: kubeadm_init_result
+  notify:
+    - Restart kubelet
+
+- name: Kubeadm Init without kube-proxy (Cilium)
+  when:
+    - ciliun_enabled
+  ansible.builtin.shell: kubeadm init --config /root/kubeadm/kubeadm-config.yaml --skip-phases=addon/kube-proxy
   register: kubeadm_init_result
   notify:
     - Restart kubelet
@@ -67,71 +77,71 @@
 
 # ======================================= CNI Driver (Calico) ======================================
 
-- name: Install pip for RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  become: true
-  ansible.builtin.dnf:
-    name: python3-pip
-    state: present
+# - name: Install pip for RedHat
+#   when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
+#   become: true
+#   ansible.builtin.dnf:
+#     name: python3-pip
+#     state: present
 
-- name: Install pip for Ubuntu
-  when: ansible_os_family == "Ubuntu"
-  become: true
-  ansible.builtin.apt:
-    name: python3-pip
-    state: present
+# - name: Install pip for Ubuntu
+#   when: ansible_os_family == "Ubuntu"
+#   become: true
+#   ansible.builtin.apt:
+#     name: python3-pip
+#     state: present
 
-- name: Install pre-requisites for kubernetes.core.k8s
-  ansible.builtin.pip:
-    name:
-      - pyyaml
-      - kubernetes
-      - jsonpatch
+# - name: Install pre-requisites for kubernetes.core.k8s
+#   ansible.builtin.pip:
+#     name:
+#       - pyyaml
+#       - kubernetes
+#       - jsonpatch
 
-- name: Download Tigera Calico operator
-  ansible.builtin.get_url:
-    url: "{{ calico_operator_link }}"
-    dest: ~/download/tigera-operator.yaml
-    owner: root
-    group: root
-    mode: "0644"
+# - name: Download Tigera Calico operator
+#   ansible.builtin.get_url:
+#     url: "{{ calico_operator_link }}"
+#     dest: ~/download/tigera-operator.yaml
+#     owner: root
+#     group: root
+#     mode: "0644"
 
-- name: Apply Tigera Calico operator
-  kubernetes.core.k8s:
-    src: ~/download/tigera-operator.yaml
-    state: present
+# - name: Apply Tigera Calico operator
+#   kubernetes.core.k8s:
+#     src: ~/download/tigera-operator.yaml
+#     state: present
 
-- name: Copy calico-install.yaml
-  become: true
-  ansible.builtin.template:
-    src: calico-install.yaml.j2
-    dest: ~/kubeadm/calico-install.yaml
-    owner: root
-    group: root
-    mode: "0644"
+# - name: Copy calico-install.yaml
+#   become: true
+#   ansible.builtin.template:
+#     src: calico-install.yaml.j2
+#     dest: ~/kubeadm/calico-install.yaml
+#     owner: root
+#     group: root
+#     mode: "0644"
 
-- name: Apply Calico
-  kubernetes.core.k8s:
-    src: ~/kubeadm/calico-install.yaml
-    state: present
-  notify:
-    - Restart kubelet
+# - name: Apply Calico
+#   kubernetes.core.k8s:
+#     src: ~/kubeadm/calico-install.yaml
+#     state: present
+#   notify:
+#     - Restart kubelet
 
 # ========================================== NodeLocalDNS ==========================================
 
-- name: Copy nodelocaldns-daemonset.yaml
-  become: true
-  ansible.builtin.template:
-    src: nodelocaldns-daemonset.yaml.j2
-    dest: ~/kubeadm/nodelocaldns-daemonset.yaml
-    owner: root
-    group: root
-    mode: "0644"
+# - name: Copy nodelocaldns-daemonset.yaml
+#   become: true
+#   ansible.builtin.template:
+#     src: nodelocaldns-daemonset.yaml.j2
+#     dest: ~/kubeadm/nodelocaldns-daemonset.yaml
+#     owner: root
+#     group: root
+#     mode: "0644"
 
-- name: Apply nodelocaldns-daemonset.yaml
-  kubernetes.core.k8s:
-    src: ~/kubeadm/nodelocaldns-daemonset.yaml
-    state: present
+# - name: Apply nodelocaldns-daemonset.yaml
+#   kubernetes.core.k8s:
+#     src: ~/kubeadm/nodelocaldns-daemonset.yaml
+#     state: present
 
 # ============================================= Reboot =============================================
 

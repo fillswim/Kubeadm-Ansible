@@ -1,0 +1,17 @@
+---
+
+nexus_raw_hosted_repository_port: "8081"
+repository_raw_hosted: "repository/raw-hosted"
+full_nexus_raw_hosted_repository_url: "http://{{ nexus_image_repository }}:{{ nexus_raw_hosted_repository_port }}/{{ repository_raw_hosted }}"
+
+# "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+containerd_url: "{{ full_nexus_raw_hosted_repository_url }}/containerd/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+
+# "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+containerd_service_url: "{{ full_nexus_raw_hosted_repository_url }}/containerd/service/containerd.service"
+
+# "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
+runc_url: "{{ full_nexus_raw_hosted_repository_url }}/runc/v{{ runc_version }}/runc.amd64"
+
+# "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+cni_plugins_url: "{{ full_nexus_raw_hosted_repository_url }}/containernetworking/plugins/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"

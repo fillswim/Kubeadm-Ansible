@@ -21,15 +21,15 @@ ansible-playbook -i inventory/k8s1_rhel.yaml Update-MetalLB.yaml -b
 ansible-playbook -i inventory/k8s1_rhel.yaml Install-ArgoCD.yaml -b
 
 # ==============================================================================
-#                                  K8s1 Alma VM
+#                              K8s1 Alma Linux 9.6
 # ==============================================================================
 
-ansible-playbook -i inventory/k8s1-alma-vm.yaml ping.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml ping.yaml -b
 
-# ==============================================================================
-#                                  K8s1 Alma LXC
-# ==============================================================================
+ansible-playbook -i inventory/k8s1-alma.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml Install-Helm.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml Install-K9s.yaml -b
 
-ansible-playbook -i inventory/k8s1-alma-lxc.yaml ping.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml Kubeadm_Create-Cluster.yaml -b
 
 # ==============================================================================

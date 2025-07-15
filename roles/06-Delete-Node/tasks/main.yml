@@ -6,10 +6,10 @@
 - name: Завершение выполнение плэйбука, так как extra_vars deleted_node не определена или не найдена в inventory
   ansible.builtin.meta: end_play
   when: # extra_vars deleted_node не определен или ноды нет ни в k8s_masters, ни в k8s_workers
-    - (deleted_node is undefined) 
-      or 
-      ((deleted_node is defined) 
-      and 
+    - (deleted_node is undefined)
+      or
+      ((deleted_node is defined)
+      and
       ((deleted_node not in groups['k8s_masters']) and (deleted_node not in groups['k8s_workers'])))
 
 ## ============================================== Ping ==============================================

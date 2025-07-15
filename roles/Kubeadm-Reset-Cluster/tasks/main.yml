@@ -91,7 +91,7 @@
     enabled: false
 
 - name: Uninstall Kubernetes packages RedHat
-  when: 
+  when:
     - ansible_os_family == "RedHat"
   ansible.builtin.yum:
     name:
