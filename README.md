@@ -31,5 +31,7 @@ ansible-playbook -i inventory/k8s1-alma.yaml Install-Helm.yaml -b
 ansible-playbook -i inventory/k8s1-alma.yaml Install-K9s.yaml -b
 
 ansible-playbook -i inventory/k8s1-alma.yaml Kubeadm_Create-Cluster.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml Role_06-Delete-Node.yaml -b
+ansible-playbook -i inventory/k8s1-alma.yaml ssh-key-hosts.yaml -b
 
 # ==============================================================================

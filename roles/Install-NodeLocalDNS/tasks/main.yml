@@ -1,0 +1,17 @@
+---
+
+# ========================================== NodeLocalDNS ==========================================
+
+- name: Copy nodelocaldns-daemonset.yaml
+  become: true
+  ansible.builtin.template:
+    src: nodelocaldns-daemonset.yaml.j2
+    dest: ~/kubeadm/nodelocaldns-daemonset.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Apply nodelocaldns-daemonset.yaml
+  kubernetes.core.k8s:
+    src: ~/kubeadm/nodelocaldns-daemonset.yaml
+    state: present

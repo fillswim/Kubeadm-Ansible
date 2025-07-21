@@ -8,22 +8,22 @@
 #   roles:
 #     - role: 01-preparation-k8s
 
-- name: High Availability
-  hosts: k8s_masters
-  roles:
-    - role: 02-High-Availability
+# - name: High Availability
+#   hosts: k8s_masters
+#   roles:
+#     - role: 02-High-Availability
 
 # - name: Install 1st Control Node
 #   hosts: k8s_masters[0]
 #   roles:
 #     - role: 03-Install-1st-Control-Node
 
-# - name: Adding-Other-Control-Nodes
-#   serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
-#   order: inventory                    # Ноды будут выбираться в порядке, как в inventory
-#   hosts: all
-#   roles:
-#     - role: 04-Adding-Other-Nodes
+- name: Adding-Other-Control-Nodes
+  serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
+  order: inventory                    # Ноды будут выбираться в порядке, как в inventory
+  hosts: all
+  roles:
+    - role: 04-Adding-Other-Nodes
 
 # - name: Install calicoctl
 #   hosts: k8s_masters[0]

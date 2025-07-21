@@ -1,0 +1,11 @@
+---
+
+# Add ssh-key to hosts
+
+- name: Add ssh-key to hosts
+  # serial: 1
+  # order: sorted
+  hosts: "all"
+
+  roles:
+    - role: ssh-key-hosts

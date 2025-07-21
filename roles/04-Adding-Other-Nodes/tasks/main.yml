@@ -1,37 +1,25 @@
 ---
 # tasks file for 04-Adding-Other-Nodes
 
-# ============================================== Ping ==============================================
+# =============================================================================
+#              Получить токены для добавления нод (на 1-й мастер ноде)
+# =============================================================================
 
-- name: Начало выполнения Playbook-а
-  become: true
-  ansible.builtin.ping:
-
-# ============================ Проверка, что нода существует в inventory ===========================
-
-- name: Завершение выполнение плэйбука, так как добавляемая нода не найдена в inventory (при наличии extra_vars added_node)
-  ansible.builtin.meta: end_play
-  when: # extra_vars added_node определен и added_node нет ни в k8s_masters, ни в k8s_workers
-    - (added_node is defined)
-      and
-      ((added_node not in groups['k8s_masters'])
-      and
-      (added_node not in groups['k8s_workers']))
-
-# ======================================= Block on Master[1] =======================================
-
-- name: Block on the 1-st Master
+- name: Блок на получение токенов для добавления нод (на 1-й мастер ноде)
   become: true
   when:
-    - inventory_hostname == groups['k8s_masters'][0]      # Выполняется только на 1-м Мастере
+    - inventory_hostname == groups['k8s_masters'][0]
   block:
 
-    # ====================== Get all added nodes ======================
+    # =========================================================================
+    #          Получить список всех добавленных нод в кластере
+    # =========================================================================
 
     - name: Get all added nodes
       ignore_errors: true
       changed_when: false
       ansible.builtin.shell: |
+        set -o pipefail
         kubectl get nodes --no-headers | awk '{print $1}'
       register: all_added_nodes
 
@@ -43,19 +31,15 @@
       ansible.builtin.debug:
         var: all_added_nodes
 
-    # ========== Проверка, что нода уже добавлена в кластер ===========
-
-    - name: Завершение выполнение плэйбука, так как добавляемая нода уже добавлена в кластер ранее
-      ansible.builtin.meta: end_play
-      when: # extra_vars added_node определен и added_node уже находится в перечне нод кластера
-        - (added_node is defined)
-          and
-          (added_node in all_added_nodes)
-
-    # ========================= Get join_path =========================
+    # =========================================================================
+    #                           Get join_path
+    # =========================================================================
 
     - name: Get join_path
-      ansible.builtin.shell: kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' | cut -c9-
+      changed_when: false
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' | cut -c9-
       register: join_path
 
     - name: Create variable join_path
@@ -66,10 +50,14 @@
       ansible.builtin.debug:
         var: join_path
 
-    # ======================== Get join_token =========================
+    # =========================================================================
+    #                           Get join_token
+    # =========================================================================
 
     - name: Get join_token
-      ansible.builtin.shell: kubeadm token create
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubeadm token create
       register: join_token
 
     - name: Create variable join_token
@@ -80,10 +68,13 @@
       ansible.builtin.debug:
         var: join_token
 
-    # ======================= Get ca_cert_hash ========================
+    # =========================================================================
+    #                          Get ca_cert_hash
+    # =========================================================================
 
     - name: Get ca_cert_hash
       ansible.builtin.shell: |
+        set -o pipefail
         openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | \
         openssl rsa -pubin -outform der 2>/dev/null | \
         openssl dgst -sha256 -hex | sed 's/^.* //'
@@ -97,10 +88,14 @@
       ansible.builtin.debug:
         var: ca_cert_hash
 
-    # ===================== Get certificate_key =======================
+    # =========================================================================
+    #                          Get Get certificate_key
+    # =========================================================================
 
     - name: Get certificate_key
-      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs | tail -1
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubeadm init phase upload-certs --upload-certs | tail -1
       register: certificate_key
 
     - name: Create variable certificate_key
@@ -111,86 +106,86 @@
       ansible.builtin.debug:
         var: certificate_key
 
-# ====================================== Block on Added Masters ====================================
 
-- name: Block on Added Master
+# =============================================================================
+#                              Блок добавления нод
+# =============================================================================
+
+
+- name: Блок на добавление нод
   become: true
-  when: # Выполняется на всех мастерах, кроме первого, или на указанном мастере (added_node), если нода уже не добавлена в кластер
-    - (inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes)
-      and
-      ((added_node is undefined) and (inventory_hostname in groups['k8s_masters'][1:]))
-      or
-      ((added_node is defined)
-        and (inventory_hostname in added_node)
-        and ("'master' in added_node")
-        and (added_node in groups['k8s_masters'][1:]))
+  when:
+    - inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes
   block:
 
-    - name: Checking that the node is already attached
-      ansible.builtin.stat:
-        path: "/etc/kubernetes/pki/ca.key"
-      register: kubeadm_ca
+    # =========================================================================
+    #                              Блок добавления master-нод
+    # =========================================================================
 
-    - name: Join control node {{ inventory_hostname }}
-      when: not kubeadm_ca.stat.exists
-      ansible.builtin.shell:
-        cmd: |
-          kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
-          --token {{ hostvars[groups['k8s_masters'][0]].join_token }} \
-          --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['k8s_masters'][0]].ca_cert_hash }} \
-          --certificate-key {{ hostvars[groups['k8s_masters'][0]].certificate_key }} \
-          --node-name {{ inventory_hostname }} \
-          --control-plane
-
-    - name: Создание папки /root/.kube
-      ansible.builtin.file:
-        path: /root/.kube
-        state: directory
-        owner: root
-        group: root
-        mode: "0775"
-
-    - name: Copy /etc/kubernetes/admin.conf to /root/.kube/config
+    - name: Блок на добавление мастер-нод
       become: true
-      ansible.builtin.copy:
-        src: /etc/kubernetes/admin.conf
-        dest: /root/.kube/config
-        remote_src: true
-        owner: root
-        group: root
-        mode: "0600"
+      when:
+        - inventory_hostname in groups['k8s_masters'][1:]
+      block:
 
-    - name: Pause for 30 seconds
-      ansible.builtin.pause:
-        seconds: 30
+        - name: Checking that the node is already attached
+          ansible.builtin.stat:
+            path: "/etc/kubernetes/pki/ca.key"
+          register: kubeadm_ca
 
-    - name: Rollout Restart CoreDNS
-      ansible.builtin.shell: kubectl -n kube-system rollout restart deployment coredns
+        - name: Join master-node {{ inventory_hostname }}
+          when: not kubeadm_ca.stat.exists
+          ansible.builtin.shell:
+            cmd: |
+              kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
+              --token {{ hostvars[groups['k8s_masters'][0]].join_token }} \
+              --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['k8s_masters'][0]].ca_cert_hash }} \
+              --certificate-key {{ hostvars[groups['k8s_masters'][0]].certificate_key }} \
+              --node-name {{ inventory_hostname }} \
+              --control-plane
 
-# ====================================== Block on Added Workers ====================================
+        - name: Создание папки /root/.kube
+          ansible.builtin.file:
+            path: /root/.kube
+            state: directory
+            owner: root
+            group: root
+            mode: "0775"
 
-- name: Block on Added Workers
-  become: true
-  when: # Выполняется (по дефолту) на всех воркерах или на указанном воркере (added_node), если нода уже не добавлена в кластер
-    - (inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes)
-      and
-      ((added_node is undefined) and (inventory_hostname in groups['k8s_workers']))
-      or
-      ((added_node is defined)
-        and (inventory_hostname in added_node)
-        and (added_node in groups['k8s_workers']))
-  block:
+        - name: Copy /etc/kubernetes/admin.conf to /root/.kube/config
+          become: true
+          ansible.builtin.copy:
+            src: /etc/kubernetes/admin.conf
+            dest: /root/.kube/config
+            remote_src: true
+            owner: root
+            group: root
+            mode: "0600"
 
-    - name: Checking that the node is already attached
-      ansible.builtin.stat:
-        path: "/etc/kubernetes/pki/ca.key"
-      register: kubeadm_ca
+        - name: Pause for 30 seconds
+          ansible.builtin.pause:
+            seconds: 30
 
-    - name: Join worker node {{ inventory_hostname }}
-      when: not kubeadm_ca.stat.exists
-      ansible.builtin.shell:
-        cmd: |
-          kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
-          --token {{ hostvars[groups['k8s_masters'][0]].join_token }} \
-          --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['k8s_masters'][0]].ca_cert_hash }} \
-          --node-name {{ inventory_hostname }}
+    # =========================================================================
+    #                         Блок добавления worker-нод
+    # =========================================================================
+
+    - name: Блок на добавление worker-нод
+      become: true
+      when:
+        - inventory_hostname in groups['k8s_workers']
+      block:
+
+        - name: Checking that the node is already attached
+          ansible.builtin.stat:
+            path: "/etc/kubernetes/pki/ca.key"
+          register: kubeadm_ca
+
+        - name: Join worker-node {{ inventory_hostname }}
+          when: not kubeadm_ca.stat.exists
+          ansible.builtin.shell:
+            cmd: |
+              kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
+              --token {{ hostvars[groups['k8s_masters'][0]].join_token }} \
+              --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['k8s_masters'][0]].ca_cert_hash }} \
+              --node-name {{ inventory_hostname }}

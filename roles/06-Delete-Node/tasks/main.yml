@@ -1,147 +1,204 @@
 ---
 # tasks file for 06-Delete-Control-Node
 
-# ================================== Проверка, что нода существует =================================
+# =============================================================================
+#              Получить токены для добавления нод (на 1-й мастер ноде)
+# =============================================================================
 
-- name: Завершение выполнение плэйбука, так как extra_vars deleted_node не определена или не найдена в inventory
-  ansible.builtin.meta: end_play
-  when: # extra_vars deleted_node не определен или ноды нет ни в k8s_masters, ни в k8s_workers
-    - (deleted_node is undefined)
-      or
-      ((deleted_node is defined)
-      and
-      ((deleted_node not in groups['k8s_masters']) and (deleted_node not in groups['k8s_workers'])))
-
-## ============================================== Ping ==============================================
-#
-#- name: Ping any Master
-#  become: true
-#  ansible.builtin.ping:
-#  when: inventory_hostname in groups['k8s_masters']
-#
-#- name: Ping Deleted Worker
-#  become: true
-#  ansible.builtin.ping:
-#  when: inventory_hostname in deleted_node
-
-# =============================== Проверка, что нода имеется в кластере =============================
-
-- name: Block on the 1-st Master
+- name: Блок на получение всех нод в кластере
   become: true
+  run_once: true
   when:
-    - inventory_hostname == groups['k8s_masters'][0]      # Выполняется только на 1-м Мастере
+    - inventory_hostname in groups['k8s_masters']
   block:
 
-    # ====================== Get all nodes ======================
+    # =========================================================================
+    #          Получить список всех добавленных нод в кластере
+    # =========================================================================
 
-    - name: Get all added nodes
+    - name: Получить список всех нод в кластере
       ignore_errors: true
       changed_when: false
       ansible.builtin.shell: |
+        set -o pipefail
         kubectl get nodes --no-headers | awk '{print $1}'
       register: all_nodes
 
-    - name: Create variable all_nodes
-      ansible.builtin.set_fact:
-        all_nodes: "{{ all_nodes.stdout }}"
+    # - name: Create variable all_nodes
+    #   ansible.builtin.set_fact:
+    #     all_nodes: "{{ all_nodes.stdout }}"
 
-    - name: Show all_nodes
-      ansible.builtin.debug:
-        var: all_nodes
+    # - name: Вывод списка всех нод в кластере
+    #   ansible.builtin.debug:
+    #     var: all_nodes.stdout_lines
 
-    # ============ Проверка, что нода имеется в кластере ==============
-
-    - name: Завершение выполнение плэйбука, так как удаляемой ноды нет в кластере
-      ansible.builtin.meta: end_play
-      when: # extra_vars added_node определен и added_node уже находится в перечне нод кластера
-        - inventory_hostname not in all_nodes
-
-# ========================================= kubectl delete =========================================
-
-- name: Block kubectl delete
-  become: true
-  when:
-    - inventory_hostname in hostvars[groups['k8s_masters'][0]].all_nodes    # Выполняется на хосте, который в кластере
-    - inventory_hostname in groups['k8s_masters']                           # из группы Masters,
-    - inventory_hostname not in deleted_node                                # но не на удаляемом хосте
-  block:
-
-    - name: Checking that the node exists
+    - name: Получить списов всех мастер-нод в кластере
       ignore_errors: true
       changed_when: false
       ansible.builtin.shell: |
-        kubectl get nodes --no-headers | awk '{print $1}' | grep "{{ deleted_node }}"
-      register: checking_node_exists_output
+        set -o pipefail
+        kubectl get nodes --no-headers | grep control-plane | awk '{print $1}'
+      register: all_cpl_nodes
 
-    - name: Kubectl delete node {{ deleted_node }}
-      ansible.builtin.shell: |
-        kubectl delete node "{{ deleted_node }}"
-      register: kubectl_delete_node_output
-      when:
-        - checking_node_exists_output.stdout != ""
-
-    - name: Print result kubectl delete node
-      ansible.builtin.debug:
-        var: kubectl_delete_node_output.stdout
-      when:
-        - kubectl_delete_node_output.stdout is defined
-
-# ======================================= Block Delete ETCD Member =======================================
-
-- name: Block Delete ETCD Member
-  become: true
-  when:
-    - inventory_hostname in hostvars[groups['k8s_masters'][0]].all_nodes    # Выполняется на хосте, который в кластере
-    - "'master' in deleted_node"                                            # если происходит удаление Master ноды
-    - inventory_hostname in groups['k8s_masters']                           # Выполняется на хостах из группы Masters,
-    - inventory_hostname not in deleted_node                                # но не на удаляемом хосте
-  block:
-
-    - name: Get deleted ETCD member ID
-      changed_when: false
-      ansible.builtin.shell: |
-        kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
-        --endpoints {{ ansible_ssh_host }}:2379 \
-        --cacert /etc/kubernetes/pki/etcd/ca.crt \
-        --key /etc/kubernetes/pki/etcd/server.key \
-        --cert /etc/kubernetes/pki/etcd/server.crt \
-        --write-out=simple \
-        member list | grep {{ deleted_node }} | awk '{print $1}' | sed 's/.$//'
-      register: deleted_etcd_member_id_output
-
-    - name: Переопределить переменную deleted_etcd_member_id
+    - name: Перезаписать переменную all_cpl_nodes
       ansible.builtin.set_fact:
-        deleted_etcd_member_id: "{{ deleted_etcd_member_id_output.stdout }}"
-      when:
-        - deleted_etcd_member_id_output.stdout != ""
+        all_cpl_nodes: "{{ all_cpl_nodes.stdout }}"
 
-    - name: Вывод ID удаляемого ETCD member
-      ansible.builtin.debug:
-        var: deleted_etcd_member_id
-      when:
-        - deleted_etcd_member_id is defined
+    - name: Цикл по всем нодам в кластере
+      ansible.builtin.include_tasks: debug_node_loop.yaml
+      loop: "{{ all_nodes.stdout_lines }}"
+      loop_control:
+        label: "{{ item }}"
 
-    - name: Delete ETCD member
-      ansible.builtin.shell: |
-        kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
-        --endpoints {{ ansible_ssh_host }}:2379 \
-        --cacert /etc/kubernetes/pki/etcd/ca.crt \
-        --key /etc/kubernetes/pki/etcd/server.key \
-        --cert /etc/kubernetes/pki/etcd/server.crt \
-        member remove {{ deleted_etcd_member_id }}
-      register: delete_etcd_member_output
-      when:
-        - deleted_etcd_member_id is defined
+# - name: Kubeadm reset
+#   become: true
+#   ansible.builtin.shell: |
+#     kubeadm reset --force
+  # when:
+  #   - inventory_hostname in deleted_node
+  #   - inventory_hostname in all_cpl_nodes
 
-    - name: Вывод результата удаления ETCD member
-      ansible.builtin.debug:
-        var: delete_etcd_member_output.stdout
-      when:
-        - delete_etcd_member_output.stdout is defined
+# # ================================== Проверка, что нода существует =================================
 
-# ========================================== kubeadm reset =========================================
+# - name: Завершение выполнение плэйбука, так как extra_vars deleted_node не определена или не найдена в inventory
+#   ansible.builtin.meta: end_play
+#   when: # extra_vars deleted_node не определен или ноды нет ни в k8s_masters, ни в k8s_workers
+#     - (deleted_node is undefined)
+#       or
+#       ((deleted_node is defined)
+#       and
+#       ((deleted_node not in groups['k8s_masters']) and (deleted_node not in groups['k8s_workers'])))
 
-- name: Kubeadm reset
-  become: true
-  ansible.builtin.shell: kubeadm reset --force
-  when: inventory_hostname in deleted_node                              # Выполняется на удаляемом хосте
+# ## ============================================== Ping ==============================================
+# #
+# #- name: Ping any Master
+# #  become: true
+# #  ansible.builtin.ping:
+# #  when: inventory_hostname in groups['k8s_masters']
+# #
+# #- name: Ping Deleted Worker
+# #  become: true
+# #  ansible.builtin.ping:
+# #  when: inventory_hostname in deleted_node
+
+# # =============================== Проверка, что нода имеется в кластере =============================
+
+# - name: Block on the 1-st Master
+#   become: true
+#   when:
+#     - inventory_hostname == groups['k8s_masters'][0]      # Выполняется только на 1-м Мастере
+#   block:
+
+#     # ====================== Get all nodes ======================
+
+#     - name: Get all added nodes
+#       ignore_errors: true
+#       changed_when: false
+#       ansible.builtin.shell: |
+#         kubectl get nodes --no-headers | awk '{print $1}'
+#       register: all_nodes
+
+#     - name: Create variable all_nodes
+#       ansible.builtin.set_fact:
+#         all_nodes: "{{ all_nodes.stdout }}"
+
+#     - name: Show all_nodes
+#       ansible.builtin.debug:
+#         var: all_nodes
+
+#     # ============ Проверка, что нода имеется в кластере ==============
+
+#     - name: Завершение выполнение плэйбука, так как удаляемой ноды нет в кластере
+#       ansible.builtin.meta: end_play
+#       when: # extra_vars added_node определен и added_node уже находится в перечне нод кластера
+#         - inventory_hostname not in all_nodes
+
+# # ========================================= kubectl delete =========================================
+
+# - name: Block kubectl delete
+#   become: true
+#   when:
+#     - inventory_hostname in hostvars[groups['k8s_masters'][0]].all_nodes    # Выполняется на хосте, который в кластере
+#     - inventory_hostname in groups['k8s_masters']                           # из группы Masters,
+#     - inventory_hostname not in deleted_node                                # но не на удаляемом хосте
+#   block:
+
+#     - name: Checking that the node exists
+#       ignore_errors: true
+#       changed_when: false
+#       ansible.builtin.shell: |
+#         kubectl get nodes --no-headers | awk '{print $1}' | grep "{{ deleted_node }}"
+#       register: checking_node_exists_output
+
+#     - name: Kubectl delete node {{ deleted_node }}
+#       ansible.builtin.shell: |
+#         kubectl delete node "{{ deleted_node }}"
+#       register: kubectl_delete_node_output
+#       when:
+#         - checking_node_exists_output.stdout != ""
+
+#     - name: Print result kubectl delete node
+#       ansible.builtin.debug:
+#         var: kubectl_delete_node_output.stdout
+#       when:
+#         - kubectl_delete_node_output.stdout is defined
+
+# # ======================================= Block Delete ETCD Member =======================================
+
+# - name: Block Delete ETCD Member
+#   become: true
+#   when:
+#     - inventory_hostname in hostvars[groups['k8s_masters'][0]].all_nodes    # Выполняется на хосте, который в кластере
+#     - "'master' in deleted_node"                                            # если происходит удаление Master ноды
+#     - inventory_hostname in groups['k8s_masters']                           # Выполняется на хостах из группы Masters,
+#     - inventory_hostname not in deleted_node                                # но не на удаляемом хосте
+#   block:
+
+#     - name: Get deleted ETCD member ID
+#       changed_when: false
+#       ansible.builtin.shell: |
+#         kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
+#         --endpoints {{ ansible_ssh_host }}:2379 \
+#         --cacert /etc/kubernetes/pki/etcd/ca.crt \
+#         --key /etc/kubernetes/pki/etcd/server.key \
+#         --cert /etc/kubernetes/pki/etcd/server.crt \
+#         --write-out=simple \
+#         member list | grep {{ deleted_node }} | awk '{print $1}' | sed 's/.$//'
+#       register: deleted_etcd_member_id_output
+
+#     - name: Переопределить переменную deleted_etcd_member_id
+#       ansible.builtin.set_fact:
+#         deleted_etcd_member_id: "{{ deleted_etcd_member_id_output.stdout }}"
+#       when:
+#         - deleted_etcd_member_id_output.stdout != ""
+
+#     - name: Вывод ID удаляемого ETCD member
+#       ansible.builtin.debug:
+#         var: deleted_etcd_member_id
+#       when:
+#         - deleted_etcd_member_id is defined
+
+#     - name: Delete ETCD member
+#       ansible.builtin.shell: |
+#         kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
+#         --endpoints {{ ansible_ssh_host }}:2379 \
+#         --cacert /etc/kubernetes/pki/etcd/ca.crt \
+#         --key /etc/kubernetes/pki/etcd/server.key \
+#         --cert /etc/kubernetes/pki/etcd/server.crt \
+#         member remove {{ deleted_etcd_member_id }}
+#       register: delete_etcd_member_output
+#       when:
+#         - deleted_etcd_member_id is defined
+
+#     - name: Вывод результата удаления ETCD member
+#       ansible.builtin.debug:
+#         var: delete_etcd_member_output.stdout
+#       when:
+#         - delete_etcd_member_output.stdout is defined
+
+# # ========================================== kubeadm reset =========================================
+
+# - name: Kubeadm reset
+#   become: true
+#   ansible.builtin.shell: kubeadm reset --force
+#   when: inventory_hostname in deleted_node                              # Выполняется на удаляемом хосте
