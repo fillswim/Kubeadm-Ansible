@@ -1,95 +1,105 @@
 ---
 # tasks file for 01-prepare-vm-for-k8s
 
-# ============================================== Ping ==============================================
+# - name: Ping
+#   become: true
+#   ansible.builtin.ping:
 
-- name: Ping
-  become: true
-  ansible.builtin.ping:
+# =============================================================================
+#                            Установка python3-pip
+# =============================================================================
 
-# ======================================== Install packages ========================================
-
-- name: Install python3-pip for RedHat
-  when:
-    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  become: true
-  ansible.builtin.dnf:
-    name: python3-pip
+- name: Установка python3-pip
+  ansible.builtin.package:
+    name:
+      - python3-pip
     state: present
 
-- name: Install python3-pip for Ubuntu
-  when:
-    - ansible_os_family == "Debian"
-  become: true
-  ansible.builtin.apt:
-    name: python3-pip
-    state: present
+# =============================================================================
+#                              Отключение SWAP
+# =============================================================================
 
-# ========================================== Disable Swap ==========================================
-
-- name: Check is swap enable
+- name: Проверка, что SWAP включен
+  changed_when: false
+  ignore_errors: true
   ansible.builtin.shell: |
     swapon
   register: swap_present
-  changed_when: false
-  ignore_errors: true
+  args:
+    executable: /bin/bash
 
-- name: If swap is enabled - disable it
+- name: Если SWAP включен - отключить его
+  when: swap_present.stdout != ""
   ansible.builtin.shell: |
     set -o pipefail
     swapoff -a
-  when: swap_present.stdout != ""
+  args:
+    executable: /bin/bash
 
-- name: Disable SWAP in fstab
+- name: Отключение SWAP в fstab
   ansible.builtin.replace:
     path: /etc/fstab
     regexp: '^([^#].*\s*swap\s*.*)$'
     replace: '# \1'
 
-# ======================================== Disable firewall ========================================
+# =============================================================================
+#                              Отключение firewall
+# =============================================================================
 
-- name: Disable firewalld
+- name: Отключение firewalld на RedHat
   when:
     - ansible_os_family == "RedHat"
     - ansible_distribution == "RedHat"
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: firewalld
     state: stopped
     enabled: false
 
-# ========================================= Disable SELinux ========================================
+# =============================================================================
+#                              Отключение SELinux
+# =============================================================================
 
-- name: Check Disable SELinux
-  ansible.posix.selinux:
-    state: disabled
-  register: selinux_ret
+- name: Block для "RedHat"
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
+  become: true
+  block:
 
-- name: Disable SELinux
-  ansible.posix.selinux:
-    state: disabled
-  when: selinux_ret.reboot_required
+    - name: Проверка, что SELinux отключен
+      ansible.posix.selinux:
+        state: disabled
+      register: selinux_ret
 
-# ==================== Forwarding IPv4 and letting iptables see bridged traffic ====================
+    - name: Отключение SELinux
+      ansible.posix.selinux:
+        state: disabled
+      when: selinux_ret.reboot_required
 
-- name: Create modules-load.d/k8s.conf
+# =============================================================================
+#                              Загрузка модулей
+# =============================================================================
+
+- name: Загрузка модулей ядра Linux
+  community.general.modprobe:
+    name: "{{ item }}"
+  loop:
+    - overlay
+    - br_netfilter
+    - nf_conntrack
+
+- name: Добавить модули в автозагрузку
   become: true
   ansible.builtin.copy:
     dest: /etc/modules-load.d/k8s.conf
     content: |-
       overlay
       br_netfilter
+      nf_conntrack
     owner: root
     group: root
     mode: "0644"
 
-- name: Load modules
-  community.general.modprobe:
-    name: "{{ item }}"
-  loop:
-    - overlay
-    - br_netfilter
-
-- name: Edit sysctl.conf
+- name: Редактирование файла /etc/sysctl.d/k8s.conf
   become: true
   ansible.posix.sysctl:
     sysctl_file: /etc/sysctl.d/k8s.conf
@@ -104,10 +114,24 @@
       value: 1
     - name: net.ipv4.ip_forward
       value: 1
+    - name: net.netfilter.nf_conntrack_max
+      value: 262144
+    - name: fs.inotify.max_user_watches
+      value: 524288
+    - name: vm.max_map_count
+      value: 262144
+    - name: kernel.panic
+      value: 10
+    - name: kernel.panic_on_oops
+      value: 1
+  notify:
+    - Reboot server
 
-# ======================================== Copy config.toml ========================================
+# =============================================================================
+#                              Установка containerd
+# =============================================================================
 
-- name: Создание /etc/containerd
+- name: Создание папки /etc/containerd
   ansible.builtin.file:
     path: /etc/containerd
     state: directory
@@ -124,8 +148,6 @@
     group: root
     mode: "0644"
 
-# ======================================= Install Containerd =======================================
-
 - name: Создание папку download
   ansible.builtin.file:
     path: /root/download
@@ -134,7 +156,7 @@
     group: root
     mode: "0755"
 
-- name: Download containerd
+- name: Загрузить containerd
   ansible.builtin.get_url:
     url: "{{ containerd_url }}"
     dest: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
@@ -142,7 +164,7 @@
     group: root
     mode: "0644"
 
-- name: Extract containerd
+- name: Распаковать containerd
   become: true
   ansible.builtin.unarchive:
     src: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
@@ -157,25 +179,17 @@
     group: root
     mode: "0755"
 
-- name: Download containerd.service
+- name: Скачать containerd.service
   ansible.builtin.get_url:
     url: "{{ containerd_service_url }}"
     dest: /usr/local/lib/systemd/system/containerd.service
     owner: root
     group: root
     mode: "0644"
+  notify:
+    - Start containerd
 
-- name: Daemon-reload
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-
-- name: Start containerd
-  ansible.builtin.systemd_service:
-    name: containerd.service
-    state: started
-    enabled: true
-
-- name: Add /usr/local/bin to .bashrc
+- name: Добавить /usr/local/bin в .bashrc
   become: true
   ansible.builtin.lineinfile:
     path: /root/.bashrc
@@ -183,9 +197,11 @@
   with_items:
     - "export PATH=$PATH:/usr/local/bin"
 
-# ========================================== Install Runc ==========================================
+# =============================================================================
+#                              Установка Runc
+# =============================================================================
 
-- name: Download Runc
+- name: Загрузить Runc
   ansible.builtin.get_url:
     url: "{{ runc_url }}"
     dest: /root/download/runc.amd64
@@ -193,7 +209,7 @@
     group: root
     mode: "0644"
 
-- name: Install Runc
+- name: Установить Runc
   become: true
   ansible.builtin.copy:
     src: /root/download/runc.amd64
@@ -203,9 +219,11 @@
     group: root
     mode: "0755"
 
-# ======================================= Install CNI Plugin =======================================
+# =============================================================================
+#                              Установка CNI Plugin
+# =============================================================================
 
-- name: Download CNI plugin
+- name: Скачать CNI plugin
   ansible.builtin.get_url:
     url: "{{ cni_plugins_url }}"
     dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
@@ -221,20 +239,23 @@
     group: root
     mode: "0775"
 
-- name: Extract cni
+- name: Распаковка CNI Plugin
   become: true
   ansible.builtin.unarchive:
     src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
     dest: /opt/cni/bin
     remote_src: true
 
-# ============================= Installing kubeadm, kubelet and kubectl ============================
+# =============================================================================
+#                      Установка kubeadm, kubelet и kubectl
+# =============================================================================
 
-- name: Block for RedHat
+- name: Block для "RedHat"
   when:
     - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   become: true
   block:
+
     - name: Add kubernetes repository
       ansible.builtin.yum_repository:
         name: kubernetes
@@ -246,18 +267,8 @@
         gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/repodata/repomd.xml.key"
         exclude: "kubelet kubeadm kubectl cri-tools kubernetes-cni"
 
-    # - name: Install kubeadm, kubelet and kubectl
-    #   ansible.builtin.yum:
-    #     name: "{{ packages }}"
-    #     disable_excludes: all
-    #     exclude: kubernetes
-    #   vars:
-    #     packages:
-    #       - kubeadm-{{ kubernetes_minor_version }}-*
-    #       - kubelet-{{ kubernetes_minor_version }}-*
-    #       - kubectl-{{ kubernetes_minor_version }}-*
-
-    - name: Install kubeadm, kubelet, and kubectl using dnf
+    - name: Установка kubeadm, kubelet и kubectl для "RedHat"
+      register: install_packages_output
       ansible.builtin.dnf:
         name:
           - "kubeadm-{{ kubernetes_minor_version }}-*"
@@ -266,49 +277,157 @@
         disable_excludes: all
         exclude: kubernetes
         state: present
+      notify:
+        - Start kubelet
 
+- name: Block для "Ubuntu"
+  when:
+    - ansible_os_family == "Debian"
+  become: true
+  block:
 
-- name: Start and enable kubelet
-  ansible.builtin.service:
-    name: kubelet
-    state: started
-    enabled: true
+    - name: Установка дополнительных пакетов для Kubernetes на "Ubuntu"
+      ansible.builtin.package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+        state: present
 
-# ================================= Installing packages for Longhorn ===============================
+    - name: Убедиться, что директория /etc/apt/keyrings существует
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
 
-- name: Install packages for Longhorn on RedHat
+    - name: Удалить старый GPG ключ Kubernetes
+      become: true
+      ansible.builtin.file:
+        path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+        state: absent
+
+    - name: Скачать GPG ключ Kubernetes
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/Release.key
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+
+    - name: Преобразовать GPG ключ в бинарный формат
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Добавить Kubernetes APT-репозиторий (как файл)
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+        mode: '0644'
+
+    - name: Обновить кэш apt
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Установка kubeadm, kubelet и kubectl для "Ubuntu"
+      register: install_packages_output
+      ansible.builtin.package:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: present
+      notify:
+        - Start kubelet
+
+# - name: Block для "Altlinux"
+#   when:
+#     - ansible_os_family == "Altlinux"
+#   become: true
+#   block:
+
+# =============================================================================
+#                      Установка пакетов для Longhorn
+# =============================================================================
+
+- name: Установка пакетов для Longhorn и LVM (общие)
+  ansible.builtin.package:
+    name:
+      - cifs-utils
+      - lvm2
+      - xfsprogs
+
+- name: Установка специфических пакетов для Longhorn и LVM на RedHat
   when:
     - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   ansible.builtin.dnf:
     name:
       - iscsi-initiator-utils
+      - nfs-utils
       - udisks2-iscsi
-      - cifs-utils
-      - nfs-utils
+      - httpd-tools
+      - parted
 
-  # ansible.builtin.yum:
-  #   name: "{{ packages }}"
-  # vars:
-  #   packages:
-  #     - iscsi-initiator-utils
-  #     - udisks2-iscsi
-  #     - cifs-utils
-  #     - nfs-utils
+  notify:
+    - Start iSCSI
 
-
-- name: Install packages for Longhorn on Ubuntu
+- name: Установка специфических пакетов для Longhorn и LVM на "Ubuntu"
   when:
-    - ansible_os_family == "Ubuntu"
-  ansible.builtin.apt:
-    pkg:
+    - ansible_os_family == "Debian"
+  ansible.builtin.package:
+    name:
       - open-iscsi
-      - cifs-utils
       - nfs-common
+      - apache2-utils
+  notify:
+    - Start iSCSI
+
+- name: Установка специфических пакетов для Longhorn и LVM на "Altlinux"
+  when:
+    - ansible_os_family == "Altlinux"
+  ansible.builtin.package:
+    name:
+      - open-iscsi
+      - apache2-full
       - nfs-utils
+  notify:
+    - Start iSCSI
 
-# ============================================= Reboot =============================================
-
-- name: Reboot
-  throttle: 1
+- name: Block для "RedHat" или "Altlinux"
+  when:
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED" or ansible_os_family == "Altlinux"
   become: true
-  ansible.builtin.reboot:
+  block:
+
+    - name: Установка passlib (для Longhorn) на "RedHat" или "Altlinux"
+      ansible.builtin.pip:
+        name:
+          - passlib
+
+    - name: Установка пакетов pip для Calico на "RedHat" или "Altlinux"
+      ansible.builtin.pip:
+        name:
+          - pyyaml
+          - kubernetes
+          - jsonpatch
+
+- name: Block для "Ubuntu"
+  when:
+    - ansible_os_family == "Debian"
+  become: true
+  block:
+
+    - name: Установка пакетов для Longhorn и LVM (общие) на "Ubuntu"
+      ansible.builtin.package:
+        name:
+          - python3-passlib
+
+# =============================================================================
+#                              Перезагрузка сервера
+# =============================================================================
+
+# - name: Reboot
+#   when: sysctl_ret.changed
+#   throttle: 1
+#   become: true
+#   ansible.builtin.reboot:

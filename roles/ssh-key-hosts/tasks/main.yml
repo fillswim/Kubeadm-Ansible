@@ -18,6 +18,8 @@
   ansible.builtin.shell: |
     set -o pipefail
     ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+  args:
+    executable: /bin/bash
 
 # =============================================================================
 #                       Получение публичного ключа ed25519
@@ -28,6 +30,8 @@
     set -o pipefail
     cat ~/.ssh/id_ed25519.pub
   register: ssh_keygen_output
+  args:
+    executable: /bin/bash
 
 - name: Вывод публичного ключа node {{ inventory_hostname }}
   ansible.builtin.debug:

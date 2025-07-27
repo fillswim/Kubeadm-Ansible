@@ -54,18 +54,16 @@
         gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/repodata/repomd.xml.key"
         exclude: "kubelet kubeadm kubectl cri-tools kubernetes-cni"
 
-    - name: Update kubeadm, kubelet and kubectl
-      when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
-      ansible.builtin.yum:
-        name: "{{ packages }}"
+    - name: Обновление kubeadm, kubelet и kubectl для "RedHat"
+      register: install_packages_output
+      ansible.builtin.dnf:
+        name:
+          - "kubeadm-{{ kubernetes_minor_version }}-*"
+          - "kubelet-{{ kubernetes_minor_version }}-*"
+          - "kubectl-{{ kubernetes_minor_version }}-*"
         disable_excludes: all
         exclude: kubernetes
-        state: latest
-      vars:
-        packages:
-          - kubeadm-{{ kubernetes_minor_version }}-*
-          - kubelet-{{ kubernetes_minor_version }}-*
-          - kubectl-{{ kubernetes_minor_version }}-*
+        state: present
 
     # =========================== Drain node ============================
 

@@ -11,15 +11,15 @@ k8s_masters:
       ansible_host: 192.168.2.111
     k8s1-alma-master-2.fillswim.local:
       ansible_host: 192.168.2.112
-    # k8s1-alma-master-3.fillswim.local:
-    #   ansible_host: 192.168.2.113
+    k8s1-alma-master-3.fillswim.local:
+      ansible_host: 192.168.2.113
 
 # Worker nodes
 k8s_workers:
   hosts:
     k8s1-alma-worker-1.fillswim.local:
       ansible_host: 192.168.2.114
-    # k8s1-alma-worker-2.fillswim.local:
-    #   ansible_host: 192.168.2.115
+    k8s1-alma-worker-2.fillswim.local:
+      ansible_host: 192.168.2.115
     k8s1-alma-worker-3.fillswim.local:
       ansible_host: 192.168.2.116

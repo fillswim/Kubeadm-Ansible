@@ -2,7 +2,7 @@
 
 # tasks file for 02-High-Availability
 
-- name: Set sysctl
+- name: Изменить настройки ядра Linux (net.ipv4.ip_nonlocal_bind)
   ansible.posix.sysctl:
     name: "net.ipv4.ip_nonlocal_bind"
     value: "1"
@@ -10,16 +10,14 @@
     state: present
     ignoreerrors: true
 
-- name: Install packages RedHat
-  when:
-    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  ansible.builtin.dnf:
+- name: Установка пакетов для Keepalived и HAProxy
+  ansible.builtin.package:
     name:
       - keepalived
       - haproxy
     state: present
 
-- name: Copy keepalived.conf
+- name: Скопировать keepalived.conf
   ansible.builtin.template:
     src: keepalived.j2
     dest: /etc/keepalived/keepalived.conf
@@ -27,7 +25,7 @@
   notify:
     - Restart keepalived
 
-- name: Copy haproxy.cfg
+- name: Скопировать haproxy.cfg
   ansible.builtin.template:
     src: haproxy.j2
     dest: /etc/haproxy/haproxy.cfg

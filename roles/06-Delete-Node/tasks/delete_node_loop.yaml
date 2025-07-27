@@ -1,0 +1,241 @@
+---
+
+# =============================================================================
+#                            Удаление нод из кластера
+# =============================================================================
+
+- name: Блок на удаление нод из кластера (если их нет в inventory)
+  become: true
+  when:
+    - item not in groups['k8s_masters']
+    - item not in groups['k8s_workers']
+  block:
+
+    # =========================================================================
+    #            Удаление ноды из кластера (и master нод и worker нод)
+    # =========================================================================
+
+    # - name: (debug) Kubectl delete node {{ item }}
+    #   ansible.builtin.debug:
+    #     msg: "kubectl delete node {{ item }}"
+
+    - name: Kubectl delete node {{ item }}
+      ansible.builtin.shell: |
+        kubectl delete node "{{ item }}"
+      register: kubectl_delete_node_output
+      args:
+        executable: /bin/bash
+
+    - name: Вывод результатов kubectl delete node {{ item }}
+      ansible.builtin.debug:
+        var: kubectl_delete_node_output.stdout
+
+    # =========================================================================
+    #                     Удаление ноды из ETCD (только master)
+    # =========================================================================
+
+    - name: Block on Delete ETCD member {{ item }}
+      when:
+        - item in all_cpl_nodes
+      block:
+
+        # - name: (debug) Delete ETCD member {{ item }}
+        #   ansible.builtin.debug:
+        #     msg: "inventory_hostname - {{ inventory_hostname }}, ansible_ssh_host - {{ ansible_ssh_host }}, item - {{ item }}"
+
+        - name: Получить ETCD memder для node {{ item }}
+          changed_when: false
+          ansible.builtin.shell: |
+            kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
+            --endpoints {{ ansible_ssh_host }}:2379 \
+            --cacert /etc/kubernetes/pki/etcd/ca.crt \
+            --key /etc/kubernetes/pki/etcd/server.key \
+            --cert /etc/kubernetes/pki/etcd/server.crt \
+            --write-out=simple \
+            member list | grep {{ item }} | awk '{print $1}' | sed 's/.$//'
+          register: deleted_etcd_member_id_output
+          args:
+            executable: /bin/bash
+
+        - name: Переопределить переменную deleted_etcd_member_id
+          ansible.builtin.set_fact:
+            deleted_etcd_member_id: "{{ deleted_etcd_member_id_output.stdout }}"
+          when:
+            - deleted_etcd_member_id_output.stdout != ""
+
+        - name: Вывод ID удаляемого ETCD member для node {{ item }}
+          ansible.builtin.debug:
+            var: deleted_etcd_member_id
+          when:
+            - deleted_etcd_member_id is defined
+
+        - name: Удалить ETCD member для node {{ item }}
+          ansible.builtin.shell: |
+            kubectl -n kube-system exec etcd-{{ inventory_hostname }} -- etcdctl \
+            --endpoints {{ ansible_ssh_host }}:2379 \
+            --cacert /etc/kubernetes/pki/etcd/ca.crt \
+            --key /etc/kubernetes/pki/etcd/server.key \
+            --cert /etc/kubernetes/pki/etcd/server.crt \
+            member remove {{ deleted_etcd_member_id }}
+          register: delete_etcd_member_output
+          when:
+            - deleted_etcd_member_id is defined
+          args:
+            executable: /bin/bash
+
+        - name: Вывод результата удаления ETCD member
+          ansible.builtin.debug:
+            var: delete_etcd_member_output.stdout
+          when:
+            - delete_etcd_member_output.stdout is defined
+
+    # =========================================================================
+    #                     Сброс ноды (и master нод и worker нод)
+    # =========================================================================
+
+    - name: Блок reset ноды
+      become: true
+      delegate_to: "{{ item }}"
+      remote_user: cloud-user
+      vars:
+        ansible_python_interpreter: auto_silent
+      block:
+
+        # - name: (debug) Получить hostname ноды {{ item }}
+        #   ansible.builtin.shell: |
+        #     hostname
+        #   register: hostname_output
+
+        # - name: (debug) Вывод hostname ноды {{ item }}
+        #   ansible.builtin.debug:
+        #     var: hostname_output.stdout
+
+        # - name: (debug) Получить IP ноды {{ item }}
+        #   ansible.builtin.shell: |
+        #     ip a
+        #   register: ip_output
+
+        # - name: (debug) Вывод IP ноды {{ item }}
+        #   ansible.builtin.debug:
+        #     var: ip_output.stdout
+
+        # - name: Сбор фактов на ноде {{ item }}
+        #   ansible.builtin.setup:
+
+        # - name: (debug) Вывод ansible_facts на ноде {{ item }}
+        #   ansible.builtin.debug:
+        #     # var: ansible_facts
+        #     var: ansible_facts.os_family
+
+        - name: Kubeadm reset ноды {{ item }}
+          ansible.builtin.shell: |
+            kubeadm reset --force
+          register: kubeadm_reset_output
+          args:
+            executable: /bin/bash
+
+        - name: Вывод результата kubeadm reset ноды {{ item }}
+          ansible.builtin.debug:
+            var: kubeadm_reset_output.stdout
+
+        - name: Crictl rm на ноде {{ item }}
+          ansible.builtin.shell: |
+            crictl rm -f -a
+          args:
+            executable: /bin/bash
+
+        - name: Crictl rmi на ноде {{ item }}
+          ansible.builtin.shell: |
+            crictl rmi --all
+          args:
+            executable: /bin/bash
+
+        - name: Stop services
+          become: true
+          ansible.builtin.systemd_service:
+            name: "{{ item_service }}"
+            state: stopped
+            enabled: false
+            daemon_reload: true
+          loop:
+            - containerd
+            - kubelet
+            - iscsi
+          loop_control:
+            loop_var: item_service
+
+        - name: Stop services (haproxy and keepalived)
+          become: true
+          when:
+            - item in all_cpl_nodes
+          ansible.builtin.systemd_service:
+            name: "{{ item_service_master }}"
+            state: stopped
+            enabled: false
+            daemon_reload: true
+          loop:
+            - haproxy
+            - keepalived
+          loop_control:
+            loop_var: item_service_master
+
+        - name: Удалить папок и файлов
+          ansible.builtin.file:
+            path: "{{ item_path }}"
+            state: absent
+          loop:
+            - /root/download
+            - /etc/kubernetes
+            - /etc/containerd
+            - /usr/local/lib/systemd/system/containerd.service
+            - /usr/local/sbin/runc
+            - /opt/cni/bin
+            - /etc/keepalived/keepalived.conf
+            - /etc/haproxy/haproxy.cfg
+            - /root/kubeadm
+            - /root/.kube
+            - /var/lib/etcd
+            - /usr/local/bin/containerd
+            - /usr/local/bin/containerd-shim
+            - /usr/local/bin/containerd-shim-runc-v1
+            - /usr/local/bin/containerd-shim-runc-v2
+            - /usr/local/bin/containerd-stress
+            - /usr/local/bin/ctr
+          loop_control:
+            loop_var: item_path
+
+        - name: Удаление пакетов для "RedHat" на ноде {{ item }}
+          when:
+            - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+          ansible.builtin.dnf:
+            name:
+              - kubeadm
+              - kubelet
+              - kubectl
+              - keepalived
+              - haproxy
+            state: absent
+
+        - name: Удаление пакетов для "Ubuntu" на ноде {{ item }} 
+          when:
+            - ansible_facts.os_family == "Ubuntu"
+          ansible.builtin.apt:
+            name:
+              - kubeadm
+              - kubelet
+              - kubectl
+              - keepalived
+              - haproxy
+            state: absent
+
+        - name: Удаление пакетов для "Altlinux" на ноде {{ item }} 
+          when:
+            - ansible_facts.os_family == "Altlinux"
+          ansible.builtin.apt_rpm:
+            name:
+              - kubeadm
+              - kubelet
+              - kubectl
+              - keepalived
+              - haproxy
+            state: absent

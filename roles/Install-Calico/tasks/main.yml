@@ -2,29 +2,6 @@
 
 # ======================================= CNI Driver (Calico) ======================================
 
-- name: Install pip for RedHat
-  when:
-    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  become: true
-  ansible.builtin.dnf:
-    name: python3-pip
-    state: present
-
-- name: Install pip for Ubuntu
-  when:
-    - ansible_os_family == "Ubuntu"
-  become: true
-  ansible.builtin.apt:
-    name: python3-pip
-    state: present
-
-- name: Install pre-requisites for kubernetes.core.k8s
-  ansible.builtin.pip:
-    name:
-      - pyyaml
-      - kubernetes
-      - jsonpatch
-
 - name: Download Tigera Calico operator
   ansible.builtin.get_url:
     url: "{{ calico_operator_link }}"

@@ -2,14 +2,14 @@
 
 - name: Restart keepalived
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     state: started
     name: keepalived
     enabled: true
 
 - name: Restart haproxy
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     state: restarted
     name: haproxy
     enabled: true

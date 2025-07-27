@@ -1,0 +1,29 @@
+---
+
+- name: Start containerd
+  become: true
+  ansible.builtin.systemd_service:
+    name: containerd
+    state: started
+    daemon_reload: true
+    enabled: true
+
+- name: Start kubelet
+  become: true
+  ansible.builtin.systemd_service:
+    name: kubelet
+    state: started
+    enabled: true
+
+- name: Start iSCSI
+  become: true
+  ansible.builtin.systemd_service:
+    name: iscsi
+    state: started
+    daemon_reload: true
+    enabled: true
+
+- name: Reboot server
+  become: true
+  throttle: 1
+  ansible.builtin.reboot:

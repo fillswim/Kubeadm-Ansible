@@ -3,6 +3,6 @@
 
 - name: Restart containerd
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     state: restarted
     name: containerd

@@ -1,0 +1,24 @@
+---
+
+- name: Получить списов всех неапрувленных CSR
+  ignore_errors: true
+  changed_when: false
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl get csr --sort-by=.metadata.creationTimestamp --no-headers | grep Pending
+  register: pending_csr
+  args:
+    executable: /bin/bash
+
+- name: Вывод списка неапрувленных CSR
+  ansible.builtin.debug:
+    var: pending_csr.stdout
+
+- name: Approve CSR
+  when:
+    - pending_csr.stdout != ''
+  ansible.builtin.shell: |
+    set -o pipefail
+    kubectl get csr --sort-by=.metadata.creationTimestamp --no-headers | grep Pending | awk '{print $1}' | xargs kubectl certificate approve
+  args:
+    executable: /bin/bash

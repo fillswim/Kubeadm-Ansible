@@ -3,28 +3,57 @@
 # ansible-playbook -i inventory/k8s1_rhel.yaml Kubeadm_Create-Cluster.yaml -b
 # ansible-playbook -i inventory/k8s1_ol.yaml Kubeadm_Create-Cluster.yaml -b
 
-# - name: Prepare VM for K8s
-#   hosts: "all"
-#   roles:
-#     - role: 01-preparation-k8s
+# =============================================================================
+#                             Создание кластера K8s
+# =============================================================================
 
-# - name: High Availability
-#   hosts: k8s_masters
-#   roles:
-#     - role: 02-High-Availability
+- name: Ping
+  hosts: "all"
+  # hosts: k8s_masters[0]
+  # hosts: k8s_workers
+  roles:
+    - role: ping
 
-# - name: Install 1st Control Node
-#   hosts: k8s_masters[0]
-#   roles:
-#     - role: 03-Install-1st-Control-Node
+- name: Подготовка VM для K8s
+  hosts: "all"
+  roles:
+    - role: 01-preparation-k8s
 
-- name: Adding-Other-Control-Nodes
-  serial: 1                           # Выполнять роль будет одновременно только на одной ноде от и до
-  order: inventory                    # Ноды будут выбираться в порядке, как в inventory
+- name: Настройка HAProxy и Keepalived
+  hosts: k8s_masters
+  roles:
+    - role: 02-High-Availability
+
+- name: Инициализация первой мастер-ноды
+  hosts: k8s_masters[0]
+  roles:
+    - role: 03-Install-1st-Control-Node
+
+- name: Добавление нод в кластер
+  serial: 1
+  order: inventory
   hosts: all
   roles:
     - role: 04-Adding-Other-Nodes
 
+- name: Approve CSR
+  hosts: k8s_masters[0]
+  roles:
+    - role: Approve-CSR
+
+- name: Удаление нод из кластера, если их нет в inventory
+  hosts: "all"
+  roles:
+    - role: 06-Delete-Node
+
+# =============================================================================
+#                      Установка дополнительных компонентов
+# =============================================================================
+
+# - name: Установка calicoctl
+#   hosts: k8s_masters[0]
+#   roles:
+#     - role: Install-Calicoctl
 # - name: Install calicoctl
 #   hosts: k8s_masters[0]
 #   roles:

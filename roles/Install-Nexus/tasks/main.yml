@@ -10,9 +10,9 @@
 # ======================================== Install packages ========================================
 
 - name: Install packages in Ubuntu
+  when: ansible_os_family == "Debian"
   ansible.builtin.apt:
     name: "{{ packages }}"
-  when: ansible_os_family == "Debian"
   vars:
     packages:
       - openjdk-{{ java_version }}-jre-headless

@@ -1,106 +1,120 @@
 ---
 # tasks file for Reset-Kubeadm-Cluster
 
-# ============================================== Ping ==============================================
+# =============================================================================
+#                                Kubeadm reset ноды
+# =============================================================================
 
-- name: Ping
+- name: Kubeadm reset ноды
+  ansible.builtin.shell: |
+    kubeadm reset --force
+  register: kubeadm_reset_output
+  args:
+    executable: /bin/bash
+
+- name: Вывод результата kubeadm reset ноды
+  ansible.builtin.debug:
+    var: kubeadm_reset_output.stdout
+
+# =============================================================================
+#                            Delete images and containers
+# =============================================================================
+
+- name: Crictl rm
+  ignore_errors: true
+  ansible.builtin.shell: |
+    crictl rm -f -a
+  args:
+    executable: /bin/bash
+
+- name: Crictl rmi
+  ignore_errors: true
+  ansible.builtin.shell: |
+    crictl rmi --all
+  args:
+    executable: /bin/bash
+
+# =============================================================================
+#                                  Stop services
+# =============================================================================
+
+- name: Stop services
   become: true
-  ansible.builtin.ping:
-
-# ========================================= Kubeadm Reset ==========================================
-
-- name: Kubeadm Reset
-  ansible.builtin.shell: kubeadm reset --force
-
-- name: Delete /etc/kubernetes
-  ansible.builtin.file:
-    path: /etc/kubernetes
-    state: absent
-
-- name: Delete ~/kubeadm
-  ansible.builtin.file:
-    path: ~/kubeadm
-    state: absent
-
-- name: Delete ~/download
-  ansible.builtin.file:
-    path: ~/download
-    state: absent
-
-- name: Delete ~/.kube
-  ansible.builtin.file:
-    path: ~/.kube
-    state: absent
-
-# ======================================= Delete  containerd =======================================
-
-- name: crictl rm -f -a
-  ansible.builtin.shell: crictl rm -f -a
-
-- name: crictl rmi --all
-  ansible.builtin.shell: crictl rmi --all
-
-- name: Stop containerd
   ansible.builtin.systemd_service:
-    name: containerd.service
+    name: "{{ item_service }}"
     state: stopped
     enabled: false
+    daemon_reload: true
+  loop:
+    - containerd
+    - kubelet
+    - iscsi
+  loop_control:
+    loop_var: item_service
 
-- name: Delete containerd
-  file:
-    path: '{{ item }}'
+- name: Stop services (haproxy and keepalived)
+  become: true
+  when:
+    - inventory_hostname == groups['k8s_masters']
+  ansible.builtin.systemd_service:
+    name: "{{ item_service_master }}"
+    state: stopped
+    enabled: false
+    daemon_reload: true
+  loop:
+    - haproxy
+    - keepalived
+  loop_control:
+    loop_var: item_service_master
+
+# =============================================================================
+#                            Delete files and folders
+# =============================================================================
+
+- name: Удалить папок и файлов
+  ansible.builtin.file:
+    path: "{{ item_path }}"
     state: absent
-  with_items:
+  loop:
+    - /root/download
+    - /etc/kubernetes
+    - /etc/containerd
+    - /usr/local/lib/systemd/system/containerd.service
+    - /usr/local/sbin/runc
+    - /opt/cni/bin
+    - /etc/keepalived/keepalived.conf
+    - /etc/haproxy/haproxy.cfg
+    - /root/kubeadm
+    - /root/.kube
+    - /var/lib/etcd
     - /usr/local/bin/containerd
     - /usr/local/bin/containerd-shim
     - /usr/local/bin/containerd-shim-runc-v1
     - /usr/local/bin/containerd-shim-runc-v2
     - /usr/local/bin/containerd-stress
     - /usr/local/bin/ctr
+  loop_control:
+    loop_var: item_path
 
-- name: Delete /usr/local/lib/systemd/system
-  ansible.builtin.file:
-    path: /usr/local/lib/systemd/system
-    state: absent
+# =============================================================================
+#                                 Delete packages
+# =============================================================================
 
-- name: Delete /etc/containerd
-  ansible.builtin.file:
-    path: /etc/containerd
-    state: absent
-
-# ========================================== Delete  Runc ==========================================
-
-- name: Delete Runc
-  ansible.builtin.file:
-    path: /usr/local/sbin/runc
-    state: absent
-
-# =========================================== Delete  CNI ==========================================
-
-- name: Delete CNI
-  ansible.builtin.file:
-    path: /opt/cni/bin
-    state: absent
-
-# ========================================= Delete  kubelet ========================================
-
-- name: Stop kubelet
-  ansible.builtin.service:
-    name: kubelet
-    state: stopped
-    enabled: false
-
-- name: Uninstall Kubernetes packages RedHat
+- name: Удаление пакетов на ноде {{ item }}
   when:
-    - ansible_os_family == "RedHat"
-  ansible.builtin.yum:
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+  ansible.builtin.package:
     name:
-      - kubectl
       - kubeadm
       - kubelet
+      - kubectl
+      - keepalived
+      - haproxy
     state: absent
 
-# ============================================= Reboot =============================================
+# =============================================================================
+#                                      Reboot
+# =============================================================================
 
 - name: Reboot
   throttle: 1

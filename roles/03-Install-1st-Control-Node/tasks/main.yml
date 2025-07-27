@@ -1,24 +1,26 @@
 ---
 # tasks file for 03-Install-1st-Master-Node
 
-# ============================================== Ping ==============================================
+# - name: Ping
+#   become: true
+#   ansible.builtin.ping:
 
-- name: Ping
-  become: true
-  ansible.builtin.ping:
+# =============================================================================
+#                        Проверка, что кластер уже создан
+# =============================================================================
 
-# ======================== Checking that the cluster has already been created ======================
-
-- name: Checking that the cluster has already been created
+- name: Проверка, что кластер уже создан
   ansible.builtin.stat:
     path: "/etc/kubernetes/pki/ca.key"
   register: kubeadm_ca
 
-- name: End_play
+- name: Конец playbook
   ansible.builtin.meta: end_play
   when: kubeadm_ca.stat.exists
 
-# ==================================== Apply kubeadm-config.yaml ===================================
+# =============================================================================
+#                                Kubeadm Init
+# =============================================================================
 
 - name: Создание папки /root/kubeadm
   ansible.builtin.file:
@@ -28,7 +30,7 @@
     group: root
     mode: "0775"
 
-- name: Copy kubeadm-config.yaml
+- name: Скопировать kubeadm-config.yaml
   become: true
   ansible.builtin.template:
     src: kubeadm-config.yaml.j2
@@ -37,29 +39,36 @@
     group: root
     mode: "0644"
 
-- name: Kubeadm Init with kube-proxy
+- name: Kubeadm Init с kube-proxy
   when:
     - not ciliun_enabled
   ansible.builtin.shell: |
     set -o pipefail
-    kubeadm init --config /root/kubeadm/kubeadm-config.yaml
+    kubeadm init \
+    --config /root/kubeadm/kubeadm-config.yaml
   register: kubeadm_init_result
+  args:
+    executable: /bin/bash
   notify:
     - Restart kubelet
 
-- name: Kubeadm Init without kube-proxy (Cilium)
+- name: Kubeadm Init без kube-proxy (для Cilium)
   when:
     - ciliun_enabled
   ansible.builtin.shell: |
     set -o pipefail
-    kubeadm init --config /root/kubeadm/kubeadm-config.yaml --skip-phases=addon/kube-proxy
+    kubeadm init \
+    --config /root/kubeadm/kubeadm-config.yaml \
+    --skip-phases=addon/kube-proxy
   register: kubeadm_init_result
+  args:
+    executable: /bin/bash
   notify:
     - Restart kubelet
 
 - name: Вывод результатов работы Kubeadm Init
   ansible.builtin.debug:
-    var: kubeadm_init_result
+    var: kubeadm_init_result.stdout
 
 - name: Создание папки /root/.kube
   ansible.builtin.file:
@@ -69,7 +78,7 @@
     group: root
     mode: "0775"
 
-- name: Copy /etc/kubernetes/admin.conf to /root/.kube/config
+- name: Скопировать /etc/kubernetes/admin.conf в /root/.kube/config
   become: true
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
@@ -79,9 +88,11 @@
     group: root
     mode: "0600"
 
-# ============================================= Reboot =============================================
+# =============================================================================
+#                              Перезагрузка сервера
+# =============================================================================
 
-- name: Reboot
+- name: Перезагрузка сервера
   throttle: 1
   become: true
   ansible.builtin.reboot:

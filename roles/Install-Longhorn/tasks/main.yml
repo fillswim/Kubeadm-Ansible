@@ -55,23 +55,7 @@
 
 # ======================= Install htpasswd ========================
 
-- name: Install htpasswd for RedHat
-  when: ansible_os_family == "RedHat" or ansible_os_family == "RED"
-  ansible.builtin.yum:
-    name: httpd-tools
-    state: present
-    # state: latest
 
-- name: Install htpasswd for Ubuntu
-  when: ansible_os_family == "Ubuntu"
-  ansible.builtin.apt:
-    name: apache2-utils
-    state: present
-
-- name: Install passlib
-  ansible.builtin.pip:
-    name:
-      - passlib
 
 # ===================== Create htpasswd file ======================
 

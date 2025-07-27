@@ -15,38 +15,42 @@
     #          Получить список всех добавленных нод в кластере
     # =========================================================================
 
-    - name: Get all added nodes
+    - name: Получить список всех нод, имеющихся в кластере
       ignore_errors: true
       changed_when: false
       ansible.builtin.shell: |
         set -o pipefail
         kubectl get nodes --no-headers | awk '{print $1}'
-      register: all_added_nodes
+      register: all_nodes
+      args:
+        executable: /bin/bash
 
-    - name: Create variable all_added_nodes
+    - name: Перезаписать переменную "all_nodes"
       ansible.builtin.set_fact:
-        all_added_nodes: "{{ all_added_nodes.stdout }}"
+        all_nodes: "{{ all_nodes.stdout }}"
 
-    - name: Show all_added_nodes
+    - name: Показать переменную "all_nodes"
       ansible.builtin.debug:
-        var: all_added_nodes
+        var: all_nodes
 
     # =========================================================================
     #                           Get join_path
     # =========================================================================
 
-    - name: Get join_path
+    - name: Получить "join_path"
       changed_when: false
       ansible.builtin.shell: |
         set -o pipefail
         kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' | cut -c9-
       register: join_path
+      args:
+        executable: /bin/bash
 
-    - name: Create variable join_path
+    - name: Перезаписать переменную "join_path"
       ansible.builtin.set_fact:
         join_path: "{{ join_path.stdout }}"
 
-    - name: Show join_path
+    - name: Показать переменную "join_path"
       ansible.builtin.debug:
         var: join_path
 
@@ -54,17 +58,19 @@
     #                           Get join_token
     # =========================================================================
 
-    - name: Get join_token
+    - name: Получить "join_token"
       ansible.builtin.shell: |
         set -o pipefail
         kubeadm token create
       register: join_token
+      args:
+        executable: /bin/bash
 
-    - name: Create variable join_token
+    - name: Перезаписать переменную "join_token"
       ansible.builtin.set_fact:
         join_token: "{{ join_token.stdout }}"
 
-    - name: Show join_token
+    - name: Показать переменную "join_token"
       ansible.builtin.debug:
         var: join_token
 
@@ -72,19 +78,21 @@
     #                          Get ca_cert_hash
     # =========================================================================
 
-    - name: Get ca_cert_hash
+    - name: Получить "ca_cert_hash"
       ansible.builtin.shell: |
         set -o pipefail
         openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | \
         openssl rsa -pubin -outform der 2>/dev/null | \
         openssl dgst -sha256 -hex | sed 's/^.* //'
       register: ca_cert_hash
+      args:
+        executable: /bin/bash
 
-    - name: Create variable ca_cert_hash
+    - name: Перезаписать переменную "ca_cert_hash"
       ansible.builtin.set_fact:
         ca_cert_hash: "{{ ca_cert_hash.stdout }}"
 
-    - name: Show ca_cert_hash
+    - name: Показать переменную "ca_cert_hash"
       ansible.builtin.debug:
         var: ca_cert_hash
 
@@ -92,17 +100,19 @@
     #                          Get Get certificate_key
     # =========================================================================
 
-    - name: Get certificate_key
+    - name: Получить "certificate_key"
       ansible.builtin.shell: |
         set -o pipefail
         kubeadm init phase upload-certs --upload-certs | tail -1
       register: certificate_key
+      args:
+        executable: /bin/bash
 
-    - name: Create variable certificate_key
+    - name: Перезаписать переменную "certificate_key"
       ansible.builtin.set_fact:
         certificate_key: "{{ certificate_key.stdout }}"
 
-    - name: Show certificate_key
+    - name: Показать переменную "certificate_key"
       ansible.builtin.debug:
         var: certificate_key
 
@@ -112,10 +122,10 @@
 # =============================================================================
 
 
-- name: Блок на добавление нод
+- name: Блок на добавление нод, если они еще не добавлены в кластер
   become: true
   when:
-    - inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_added_nodes
+    - inventory_hostname not in hostvars[groups['k8s_masters'][0]].all_nodes
   block:
 
     # =========================================================================
@@ -128,13 +138,7 @@
         - inventory_hostname in groups['k8s_masters'][1:]
       block:
 
-        - name: Checking that the node is already attached
-          ansible.builtin.stat:
-            path: "/etc/kubernetes/pki/ca.key"
-          register: kubeadm_ca
-
-        - name: Join master-node {{ inventory_hostname }}
-          when: not kubeadm_ca.stat.exists
+        - name: Добавление мастер-ноды {{ inventory_hostname }}
           ansible.builtin.shell:
             cmd: |
               kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
@@ -143,6 +147,8 @@
               --certificate-key {{ hostvars[groups['k8s_masters'][0]].certificate_key }} \
               --node-name {{ inventory_hostname }} \
               --control-plane
+          args:
+            executable: /bin/bash
 
         - name: Создание папки /root/.kube
           ansible.builtin.file:
@@ -152,7 +158,7 @@
             group: root
             mode: "0775"
 
-        - name: Copy /etc/kubernetes/admin.conf to /root/.kube/config
+        - name: Скопировать /etc/kubernetes/admin.conf в /root/.kube/config
           become: true
           ansible.builtin.copy:
             src: /etc/kubernetes/admin.conf
@@ -176,16 +182,12 @@
         - inventory_hostname in groups['k8s_workers']
       block:
 
-        - name: Checking that the node is already attached
-          ansible.builtin.stat:
-            path: "/etc/kubernetes/pki/ca.key"
-          register: kubeadm_ca
-
-        - name: Join worker-node {{ inventory_hostname }}
-          when: not kubeadm_ca.stat.exists
+        - name: Добавление worker-ноды {{ inventory_hostname }}
           ansible.builtin.shell:
             cmd: |
               kubeadm join {{ hostvars[groups['k8s_masters'][0]].join_path }} \
               --token {{ hostvars[groups['k8s_masters'][0]].join_token }} \
               --discovery-token-ca-cert-hash sha256:{{ hostvars[groups['k8s_masters'][0]].ca_cert_hash }} \
               --node-name {{ inventory_hostname }}
+          args:
+            executable: /bin/bash
