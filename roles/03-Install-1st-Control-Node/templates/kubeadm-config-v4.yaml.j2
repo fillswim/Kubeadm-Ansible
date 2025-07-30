@@ -1,7 +1,7 @@
----
-# ===================================================================
-#                           InitConfiguration
-# ===================================================================
+# ==========================================================
+#                    InitConfiguration
+# ==========================================================
+
 kind: InitConfiguration
 apiVersion: kubeadm.k8s.io/v1beta4
 bootstrapTokens:
@@ -12,15 +12,19 @@ bootstrapTokens:
   usages:
   - signing
   - authentication
-localAPIEndpoint:
-  advertiseAddress: 1.2.3.4
-  bindPort: 6443
 nodeRegistration:
-  criSocket: unix:///var/run/containerd/containerd.sock
+  # name: node
+  name: {{ ansible_facts.fqdn }}                            # Имя первой control ноды
+  # criSocket: unix:///var/run/containerd/containerd.sock
+  criSocket: {{ '\"' + path_to_cri_socket + '\"' }}
   imagePullPolicy: IfNotPresent
   imagePullSerial: true
-  name: node
   taints: null
+localAPIEndpoint:
+  # advertiseAddress: 1.2.3.4
+  advertiseAddress: {{ ansible_facts.default_ipv4.address }}
+  # bindPort: 6443
+  bindPort: {{ node_control_plane_port }}
 timeouts:
   controlPlaneComponentHealthCheck: 4m0s
   discovery: 5m0s
@@ -29,55 +33,68 @@ timeouts:
   kubernetesAPICall: 1m0s
   tlsBootstrap: 5m0s
   upgradeManifests: 5m0s
+
+# ==========================================================
+#                    ClusterConfiguration
+# ==========================================================
 ---
-# ===================================================================
-#                           ClusterConfiguration
-# ===================================================================
 kind: ClusterConfiguration
-apiServer: {}
 apiVersion: kubeadm.k8s.io/v1beta4
+certificatesDir: /etc/kubernetes/pki                                                        # Где будут находиться сертификаты
 caCertificateValidityPeriod: 87600h0m0s
 certificateValidityPeriod: 8760h0m0s
-certificatesDir: /etc/kubernetes/pki
-clusterName: kubernetes
+# clusterName: kubernetes
+clusterName: {{ cluster_name }}                                                             # Доменное имя
 controllerManager: {}
 dns: {}
-encryptionAlgorithm: RSA-2048
 etcd:
   local:
     dataDir: /var/lib/etcd
-imageRepository: registry.k8s.io
-kubernetesVersion: 1.33.0
+# imageRepository: registry.k8s.io
+imageRepository: {{ '\"' + image_repository + '\"' }}
+apiServer:
+  extraArgs:
+    - name: authorization-mode
+      value: Node,RBAC
+    - name: bind-address
+      value: 0.0.0.0
+    - name: service-cluster-ip-range
+      value: {{ '\"' + cluster_service_network + '\"' }}                                      # Сеть для сервисов
+    - name: service-node-port-range
+      value: {{ cluster_pod_network_ports }}                                                  # Порты для сети для сервисов NodePort
+    # authorization-mode: Node,RBAC
+    # bind-address: 0.0.0.0
+    # service-cluster-ip-range: {{ '\"' + cluster_service_network + '\"' }}                   # Сеть для сервисов
+    # service-node-port-range: {{ cluster_pod_network_ports }}                                # Порты для сети для сервисов NodePort
+encryptionAlgorithm: RSA-2048
+controlPlaneEndpoint: {{ cluster_control_plane_vip }}:{{ cluster_control_plane_port }}        # Кластерный IP на HAProxy
+# kubernetesVersion: 1.33.0
+kubernetesVersion: {{ '\"' + kubernetes_minor_version + '\"' }}
 networking:
-  dnsDomain: cluster.local
-  serviceSubnet: 10.96.0.0/12
-proxy: {}
-scheduler: {}
+  # serviceSubnet: 10.96.0.0/12
+  serviceSubnet: {{ '\"' + cluster_service_network + '\"' }}                                  # Сеть для сервисов
+  podSubnet: {{ '\"' + cluster_pod_network + '\"' }}                                          # Сеть для подов
+  # dnsDomain: cluster.local
+  dnsDomain: {{ cluster_name }}
+# proxy: {}                                                                                   # kube-proxy включен по умолчанию
+proxy:
+  disabled: true                                                                              # disable kube-proxy
+scheduler: {}                                                                                 # kube-scheduler включен по умолчанию
 
 ---
 # ===================================================================
-#                           JoinConfiguration
+#                           KubeletConfiguration
 # ===================================================================
-kind: JoinConfiguration
-apiVersion: kubeadm.k8s.io/v1beta4
-caCertPath: /etc/kubernetes/pki/ca.crt
-discovery:
-  bootstrapToken:
-    apiServerEndpoint: kube-apiserver:6443
-    token: abcdef.0123456789abcdef
-    unsafeSkipCAVerification: true
-  tlsBootstrapToken: abcdef.0123456789abcdef
-nodeRegistration:
-  criSocket: unix:///var/run/containerd/containerd.sock
-  imagePullPolicy: IfNotPresent
-  imagePullSerial: true
-  name: k8s1-alma-master-1
-  taints: null
-timeouts:
-  controlPlaneComponentHealthCheck: 4m0s
-  discovery: 5m0s
-  etcdAPICall: 2m0s
-  kubeletHealthCheck: 4m0s
-  kubernetesAPICall: 1m0s
-  tlsBootstrap: 5m0s
-  upgradeManifests: 5m0s
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+serverTLSBootstrap: true
+clusterDNS:                                                                          # Нужно установить на каждой ноде кластера
+- {{ cluster_dns_server_ip }}                                                        # IP адреса DNS серверов кластера
+systemReserved:
+  memory: 512Mi
+  cpu: 500m
+  ephemeral-storage: 2Gi
+# Default: "10Mi"
+containerLogMaxSize: 1Mi
+# Default: 5
+containerLogMaxFiles: 3

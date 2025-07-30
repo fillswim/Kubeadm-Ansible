@@ -30,10 +30,21 @@
     group: root
     mode: "0775"
 
-- name: Скопировать kubeadm-config.yaml
+- name: Скопировать kubeadm-config.yaml (v1beta3)
   become: true
+  when: kubeadm_api_version == "v1beta3"
   ansible.builtin.template:
-    src: kubeadm-config.yaml.j2
+    src: kubeadm-config-v3.yaml.j2
+    dest: /root/kubeadm/kubeadm-config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Скопировать kubeadm-config.yaml (v1beta4)
+  become: true
+  when: kubeadm_api_version == "v1beta4"
+  ansible.builtin.template:
+    src: kubeadm-config-v4.yaml.j2
     dest: /root/kubeadm/kubeadm-config.yaml
     owner: root
     group: root
