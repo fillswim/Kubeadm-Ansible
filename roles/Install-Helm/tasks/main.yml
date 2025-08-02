@@ -40,8 +40,11 @@
 - name: Checking helm version
   ignore_errors: true
   changed_when: false
-  ansible.builtin.shell: |
-    helm version --short
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      export PATH=$PATH:/usr/local/bin
+      helm version --short
   register: checking_helm_version_output
 
 - name: Вывод версии Helm
