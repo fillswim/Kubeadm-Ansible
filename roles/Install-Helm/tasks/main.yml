@@ -42,7 +42,6 @@
   changed_when: false
   ansible.builtin.shell:
     cmd: |
-      set -o pipefail
       export PATH=$PATH:/usr/local/bin
       helm version --short
   register: checking_helm_version_output

@@ -16,7 +16,8 @@ localAPIEndpoint:
 nodeRegistration:
   criSocket: {{ '\"' + path_to_cri_socket + '\"' }}
   imagePullPolicy: IfNotPresent
-  name: {{ ansible_facts.fqdn }}                            # Имя первой control ноды
+  # name: {{ ansible_facts.fqdn }}                            # Имя первой control ноды
+  name: {{ inventory_hostname }}                            # Имя первой control ноды
   taints:
   - effect: NoSchedule
     key: node-role.kubernetes.io/control-plane

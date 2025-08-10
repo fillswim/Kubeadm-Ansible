@@ -40,6 +40,7 @@
 
 - name: Stop services
   become: true
+  ignore_errors: true
   ansible.builtin.systemd_service:
     name: "{{ item_service }}"
     state: stopped
@@ -100,9 +101,9 @@
 #                                 Delete packages
 # =============================================================================
 
-- name: Удаление пакетов на ноде {{ item }}
+- name: Удаление пакетов на ноде (RedHat)
   when:
-    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
   ansible.builtin.package:
     name:
       - kubeadm
@@ -110,6 +111,35 @@
       - kubectl
       - keepalived
       - haproxy
+    state: absent
+
+- name: Удаление пакетов на ноде (Ubuntu)
+  when:
+    - ansible_os_family == "Ubuntu"
+  ansible.builtin.apt:
+    name:
+      - kubeadm
+      - kubelet
+      - kubectl
+      - keepalived
+      - haproxy
+    state: absent
+
+- name: Удаление пакетов на ноде (Altlinux)
+  when:
+    - ansible_os_family == "Altlinux"
+  community.general.apt_rpm:
+    pkg:
+      - "kubernetes{{ kubernetes_major_version }}-kubeadm"
+      - "kubernetes{{ kubernetes_major_version }}-kubelet"
+      # - "kubernetes{{ kubernetes_major_version }}-common"
+      # - "kubernetes{{ kubernetes_major_version }}-master"
+      # - "kubernetes{{ kubernetes_major_version }}-client"
+      # - "kubernetes{{ kubernetes_major_version }}-node"
+      - "kubernetes{{ kubernetes_major_version }}-crio"
+      - "cri-tools{{ kubernetes_major_version }}"
+      - "keepalived"
+      - "haproxy"
     state: absent
 
 # =============================================================================

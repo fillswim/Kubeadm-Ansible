@@ -231,11 +231,16 @@
         - name: Удаление пакетов для "Altlinux" на ноде {{ item }} 
           when:
             - ansible_facts.os_family == "Altlinux"
-          ansible.builtin.apt_rpm:
-            name:
-              - kubeadm
-              - kubelet
-              - kubectl
-              - keepalived
-              - haproxy
+          community.general.apt_rpm:
+            pkg:
+              - "kubernetes{{ kubernetes_major_version }}-kubeadm"
+              - "kubernetes{{ kubernetes_major_version }}-kubelet"
+              # - "kubernetes{{ kubernetes_major_version }}-common"
+              # - "kubernetes{{ kubernetes_major_version }}-master"
+              # - "kubernetes{{ kubernetes_major_version }}-client"
+              # - "kubernetes{{ kubernetes_major_version }}-node"
+              - "kubernetes{{ kubernetes_major_version }}-crio"
+              - "cri-tools{{ kubernetes_major_version }}"
+              - "keepalived"
+              - "haproxy"
             state: absent

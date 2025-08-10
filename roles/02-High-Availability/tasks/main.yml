@@ -10,12 +10,35 @@
     state: present
     ignoreerrors: true
 
-- name: Установка пакетов для Keepalived и HAProxy
+- name: Создание системного пользователя для HAProxy (для Altlinux)
+  when:
+    - ansible_os_family == "Altlinux"
+  ansible.builtin.user:
+    name: haproxy
+    system: true
+    shell: /usr/sbin/nologin
+    home: /nonexistent
+    comment: "HAProxy system user"
+    state: present
+
+- name: Установка пакетов для Keepalived и HAProxy (не на Altlinux)
+  when:
+    - ansible_os_family != "Altlinux"
   ansible.builtin.package:
     name:
       - keepalived
       - haproxy
     state: present
+
+- name: Установка пакетов для Keepalived и HAProxy (на Altlinux)
+  when:
+    - ansible_os_family == "Altlinux"
+  community.general.apt_rpm:
+    update_cache: true
+    pkg:
+      - keepalived
+      - haproxy
+    state: latest
 
 - name: Скопировать keepalived.conf
   ansible.builtin.template:
