@@ -2,13 +2,18 @@
 
 # tasks file for 02-High-Availability
 
+# ==============================================================================
+#                            Настройка модулей ядра Linux
+# ==============================================================================
+
 - name: Изменить настройки ядра Linux (net.ipv4.ip_nonlocal_bind)
   ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl.d/99-nonlocal-bind.conf
     name: "net.ipv4.ip_nonlocal_bind"
-    value: "1"
+    value: "{{ ip_nonlocal_bind }}"
     sysctl_set: true
     state: present
-    ignoreerrors: true
+    reload: true
 
 - name: Создание системного пользователя для HAProxy (для Altlinux)
   when:

@@ -7,44 +7,44 @@
 #                             Создание кластера K8s
 # =============================================================================
 
-# - name: Ping
-#   hosts: "all"
-#   # hosts: k8s_masters[0]
-#   # hosts: k8s_workers
-#   roles:
-#     - role: ping
+- name: Ping
+  hosts: "all"
+  # hosts: k8s_masters[0]
+  # hosts: k8s_workers
+  roles:
+    - role: ping
 
-# - name: Подготовка VM для K8s
-#   hosts: "all"
-#   roles:
-#     - role: 01-preparation-k8s
+- name: Подготовка VM для K8s
+  hosts: "all"
+  roles:
+    - role: 01-preparation-k8s
 
 - name: Настройка HAProxy и Keepalived
   hosts: k8s_masters
   roles:
     - role: 02-High-Availability
 
-# - name: Инициализация первой мастер-ноды
-#   hosts: k8s_masters[0]
-#   roles:
-#     - role: 03-Install-1st-Control-Node
+- name: Инициализация первой мастер-ноды
+  hosts: k8s_masters[0]
+  roles:
+    - role: 03-Install-1st-Control-Node
 
-# - name: Добавление нод в кластер
-#   serial: 1
-#   order: inventory
-#   hosts: all
-#   roles:
-#     - role: 04-Adding-Other-Nodes
+- name: Добавление нод в кластер
+  serial: 1
+  order: inventory
+  hosts: all
+  roles:
+    - role: 04-Adding-Other-Nodes
 
-# - name: Approve CSR
-#   hosts: k8s_masters[0]
-#   roles:
-#     - role: Approve-CSR
+- name: Approve CSR
+  hosts: k8s_masters[0]
+  roles:
+    - role: Approve-CSR
 
-# - name: Удаление нод из кластера, если их нет в inventory
-#   hosts: "all"
-#   roles:
-#     - role: 06-Delete-Node
+- name: Удаление нод из кластера, если их нет в inventory
+  hosts: "all"
+  roles:
+    - role: 06-Delete-Node
 
 # =============================================================================
 #                      Установка дополнительных компонентов

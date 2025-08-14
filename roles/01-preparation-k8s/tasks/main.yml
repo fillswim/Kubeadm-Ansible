@@ -24,7 +24,7 @@
     update_cache: true
     pkg:
       - python3-module-pip
-    state: present
+    state: latest
 
 # =============================================================================
 #                              Отключение SWAP
@@ -381,13 +381,9 @@
         pkg:
           - "kubernetes{{ kubernetes_major_version }}-kubeadm"
           - "kubernetes{{ kubernetes_major_version }}-kubelet"
-          # - "kubernetes{{ kubernetes_major_version }}-common"
-          # - "kubernetes{{ kubernetes_major_version }}-master"
-          # - "kubernetes{{ kubernetes_major_version }}-client"
-          # - "kubernetes{{ kubernetes_major_version }}-node"
           - "kubernetes{{ kubernetes_major_version }}-crio"
           - "cri-tools{{ kubernetes_major_version }}"
-        state: present
+        state: latest
       notify:
         - Start kubelet
         - Start crio
