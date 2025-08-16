@@ -465,7 +465,7 @@
       - python3-module-passlib
       - python3-module-jsonpatch
       - python3-module-pyaml
-    state: present
+    state: latest
   notify:
     - Start iSCSI
 

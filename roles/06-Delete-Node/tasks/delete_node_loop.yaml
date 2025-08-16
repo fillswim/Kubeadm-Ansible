@@ -235,10 +235,6 @@
             pkg:
               - "kubernetes{{ kubernetes_major_version }}-kubeadm"
               - "kubernetes{{ kubernetes_major_version }}-kubelet"
-              # - "kubernetes{{ kubernetes_major_version }}-common"
-              # - "kubernetes{{ kubernetes_major_version }}-master"
-              # - "kubernetes{{ kubernetes_major_version }}-client"
-              # - "kubernetes{{ kubernetes_major_version }}-node"
               - "kubernetes{{ kubernetes_major_version }}-crio"
               - "cri-tools{{ kubernetes_major_version }}"
               - "keepalived"
