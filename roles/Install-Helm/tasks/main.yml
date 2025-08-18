@@ -9,35 +9,43 @@
 
 # ========================================== Download Helm =========================================
 
-- name: Download helm
+- name: Создание временной папки
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0775"
+
+- name: Download Helm
   ansible.builtin.get_url:
     url: "{{ helm_link }}"
-    dest: ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
     owner: root
     group: root
     mode: "0644"
 
-- name: Extract helm
+- name: Распаковать Helm
   become: true
   ansible.builtin.unarchive:
-    src: ~/download/helm-v{{ helm_version }}-linux-amd64.tar.gz
-    dest: ~/download
+    src: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "{{ temp_folder }}"
     owner: root
     group: root
     mode: "0755"
     remote_src: true
 
-- name: Скопировать helm в /usr/local/bin/
+- name: Скопировать Helm в /usr/local/bin/
   become: true
   ansible.builtin.copy:
-    src: ~/download/linux-amd64/helm
+    src: "{{ temp_folder }}/linux-amd64/helm"
     dest: /usr/local/bin/helm
     owner: root
     group: root
     mode: "0755"
     remote_src: true
 
-- name: Checking helm version
+- name: Проверить версию Helm
   ignore_errors: true
   changed_when: false
   ansible.builtin.shell:

@@ -1,0 +1,4 @@
+---
+
+temp_folder: "/tmp/helm"
+helm_link: "http://{{ nexus_image_repository }}:8081/repository/raw-hosted/helm/helm-v{{ helm_version }}-linux-amd64.tar.gz"

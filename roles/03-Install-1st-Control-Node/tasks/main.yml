@@ -50,7 +50,7 @@
     group: root
     mode: "0644"
 
-- name: Kubeadm Init с kube-proxy
+- name: Kubeadm Init с kube-proxy (без Cilium)
   when:
     - not ciliun_enabled
   ansible.builtin.shell: |
@@ -63,7 +63,7 @@
   notify:
     - Restart kubelet
 
-- name: Kubeadm Init без kube-proxy (для Cilium)
+- name: Kubeadm Init без kube-proxy (c Cilium)
   when:
     - ciliun_enabled
   ansible.builtin.shell: |

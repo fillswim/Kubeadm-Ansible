@@ -1,4 +1,5 @@
 ---
+
 ansible_user:                   cloud-user
 ansible_ssh_private_key_file:   ~/.ssh/id_ed25519
 ansible_python_interpreter:     auto_silent
@@ -92,7 +93,6 @@ cluster_dns_server_ip:          10.96.0.10
 # ==============================================================================
 
 helm_version:                   3.18.3
-helm_link:                      "http://{{ nexus_image_repository }}:8081/repository/raw-hosted/helm/helm-v{{ helm_version }}-linux-amd64.tar.gz"
 
 # ==============================================================================
 #                               Install-K9s.yaml

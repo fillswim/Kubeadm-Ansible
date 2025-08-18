@@ -1,0 +1,25 @@
+---
+k8s1_altlinux:
+  children:
+    k8s_masters:
+    k8s_workers:
+
+# Control nodes
+k8s_masters:
+  hosts:
+    k8s1-altlinux-master-1.fillswim.local:
+      ansible_host: 192.168.2.121
+    k8s1-altlinux-master-2.fillswim.local:
+      ansible_host: 192.168.2.122
+    k8s1-altlinux-master-3.fillswim.local:
+      ansible_host: 192.168.2.123
+
+# Worker nodes
+k8s_workers:
+  hosts:
+    k8s1-altlinux-worker-1.fillswim.local:
+      ansible_host: 192.168.2.124
+    k8s1-altlinux-worker-2.fillswim.local:
+      ansible_host: 192.168.2.125
+    k8s1-altlinux-worker-3.fillswim.local:
+      ansible_host: 192.168.2.126

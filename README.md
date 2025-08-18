@@ -35,3 +35,10 @@ ansible-playbook -i inventory/k8s1-alma.yaml Role_06-Delete-Node.yaml -b
 ansible-playbook -i inventory/k8s1-alma.yaml Kubeadm_Reset-Cluster.yaml -b
 
 # ==============================================================================
+#                              K8s1 Alma Linux 9.6
+# ==============================================================================
+
+ansible-playbook -i inventory/k8s1-altlinux.yaml ping.yaml -b
+ansible-playbook -i inventory/k8s1-altlinux.yaml Kubeadm_Create-Cluster.yaml -b
+
+# ==============================================================================

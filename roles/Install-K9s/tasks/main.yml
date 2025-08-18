@@ -9,11 +9,9 @@
     group: root
     mode: "0775"
 
-# wget https://github.com/derailed/k9s/releases/download/v0.50.6/k9s_Linux_amd64.tar.gz
 - name: Скачать k9s
   ansible.builtin.get_url:
-    # url: "https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
-    url: "http://nexus.fillswim.local:8081/repository/raw-hosted/k9s/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
+    url: "{{ k9s_link }}"
     dest: "{{ temp_folder }}/k9s_Linux_amd64.tar.gz"
     mode: '0755'
 
