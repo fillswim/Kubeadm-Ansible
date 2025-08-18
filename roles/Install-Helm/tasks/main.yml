@@ -45,6 +45,11 @@
     mode: "0755"
     remote_src: true
 
+- name: Удалить директорию "{{ temp_folder }}"
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: absent
+
 - name: Проверить версию Helm
   ignore_errors: true
   changed_when: false
