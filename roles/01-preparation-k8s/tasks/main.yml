@@ -9,6 +9,14 @@
 #                            Установка python3-pip
 # =============================================================================
 
+- name: Создание папку download
+  ansible.builtin.file:
+    path: /root/download
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Установка python3-pip (не на Altlinux)
   when:
     - ansible_os_family != "Altlinux"
@@ -148,71 +156,128 @@
   become: true
   block:
 
-    - name: Создание папки /etc/containerd
-      ansible.builtin.file:
-        path: /etc/containerd
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Скопировать config.toml
+    - name: Установка containerd (не на Altlinux)
       become: true
-      ansible.builtin.template:
-        src: config.toml.j2
-        dest: /etc/containerd/config.toml
-        owner: root
-        group: root
-        mode: "0644"
+      when:
+        - ansible_os_family != "Altlinux"
+      block:
 
-    - name: Создание папку download
-      ansible.builtin.file:
-        path: /root/download
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
+        - name: Создание папки /etc/containerd
+          ansible.builtin.file:
+            path: /etc/containerd
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
 
-    - name: Загрузить containerd
-      ansible.builtin.get_url:
-        url: "{{ containerd_url }}"
-        dest: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
-        owner: root
-        group: root
-        mode: "0644"
+        - name: Скопировать config.toml
+          become: true
+          ansible.builtin.template:
+            src: config.toml.j2
+            dest: /etc/containerd/config.toml
+            owner: root
+            group: root
+            mode: "0644"
 
-    - name: Распаковать containerd
+        - name: Загрузить containerd
+          ansible.builtin.get_url:
+            url: "{{ containerd_url }}"
+            dest: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Распаковать containerd
+          become: true
+          ansible.builtin.unarchive:
+            src: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
+            dest: /usr/local
+            remote_src: true
+
+        - name: Создание папку /usr/local/lib/systemd/system
+          ansible.builtin.file:
+            path: /usr/local/lib/systemd/system
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Скачать containerd.service
+          ansible.builtin.get_url:
+            url: "{{ containerd_service_url }}"
+            dest: /usr/local/lib/systemd/system/containerd.service
+            owner: root
+            group: root
+            mode: "0644"
+          notify:
+            - Start containerd
+
+        - name: Добавить /usr/local/bin в .bashrc
+          become: true
+          ansible.builtin.lineinfile:
+            path: /root/.bashrc
+            line: "{{ item }}"
+          with_items:
+            - "export PATH=$PATH:/usr/local/bin"
+
+    - name: Установка containerd (на Altlinux)
       become: true
-      ansible.builtin.unarchive:
-        src: /root/download/containerd-{{ containerd_version }}-linux-amd64.tar.gz
-        dest: /usr/local
-        remote_src: true
+      when:
+        - ansible_os_family == "Altlinux"
+      block:
 
-    - name: Создание папку /usr/local/lib/systemd/system
-      ansible.builtin.file:
-        path: /usr/local/lib/systemd/system
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
+        - name: Установка containerd (на Altlinux)
+          community.general.apt_rpm:
+            update_cache: true
+            pkg:
+              - "containerd"
+              - "cri-tools{{ kubernetes_major_version }}"
+            state: latest
+          notify:
+            - Start containerd
 
-    - name: Скачать containerd.service
-      ansible.builtin.get_url:
-        url: "{{ containerd_service_url }}"
-        dest: /usr/local/lib/systemd/system/containerd.service
-        owner: root
-        group: root
-        mode: "0644"
-      notify:
-        - Start containerd
+# =============================================================================
+#                              Установка CRI-O
+# =============================================================================
 
-    - name: Добавить /usr/local/bin в .bashrc
+- name: Block для CRI-O
+  when:
+    - enable_crio
+  become: true
+  block:
+
+    - name: Установка CRI-O (на Altlinux)
       become: true
-      ansible.builtin.lineinfile:
-        path: /root/.bashrc
-        line: "{{ item }}"
-      with_items:
-        - "export PATH=$PATH:/usr/local/bin"
+      when:
+        - ansible_os_family == "Altlinux"
+      block:
+
+        - name: Установка CRI-O (на Altlinux)
+          community.general.apt_rpm:
+            update_cache: true
+            pkg:
+              - "kubernetes{{ kubernetes_major_version }}-crio"
+              - "cri-tools{{ kubernetes_major_version }}"
+            state: latest
+          notify:
+            - Start crio
+
+        - name: Убрать лишние репозитории из registries.conf
+          ansible.builtin.replace:
+            path: /etc/containers/registries.conf
+            regexp: '^unqualified-search-registries = \[.*\]$'
+            replace: 'unqualified-search-registries = ["registry.altlinux.org"]'
+
+        - name: Скопировать nexus.conf
+          become: true
+          ansible.builtin.template:
+            src: nexus.conf.j2
+            dest: /etc/containers/registries.conf.d/nexus.conf
+            owner: root
+            group: root
+            mode: "0644"
+          notify:
+            - Restart crio
 
 # =============================================================================
 #                              Установка Runc
@@ -224,23 +289,42 @@
   become: true
   block:
 
-    - name: Загрузить Runc
-      ansible.builtin.get_url:
-        url: "{{ runc_url }}"
-        dest: /root/download/runc.amd64
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Установить Runc
+    - name: Установка Runc (не на Altlinux)
       become: true
-      ansible.builtin.copy:
-        src: /root/download/runc.amd64
-        dest: /usr/local/sbin/runc
-        remote_src: true
-        owner: root
-        group: root
-        mode: "0755"
+      when:
+        - ansible_os_family != "Altlinux"
+      block:
+
+        - name: Загрузить Runc
+          ansible.builtin.get_url:
+            url: "{{ runc_url }}"
+            dest: /root/download/runc.amd64
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Установить Runc
+          become: true
+          ansible.builtin.copy:
+            src: /root/download/runc.amd64
+            dest: /usr/local/sbin/runc
+            remote_src: true
+            owner: root
+            group: root
+            mode: "0755"
+
+    - name: Установка Runc (на Altlinux)
+      become: true
+      when:
+        - ansible_os_family == "Altlinux"
+      block:
+
+        - name: Установка Runc (на Altlinux)
+          community.general.apt_rpm:
+            update_cache: true
+            pkg:
+              - "runc"
+            state: latest
 
 # =============================================================================
 #                              Установка CNI Plugin
@@ -252,28 +336,47 @@
   become: true
   block:
 
-    - name: Скачать CNI plugin
-      ansible.builtin.get_url:
-        url: "{{ cni_plugins_url }}"
-        dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Создание папки /opt/cni/bin
-      ansible.builtin.file:
-        path: /opt/cni/bin
-        state: directory
-        owner: root
-        group: root
-        mode: "0775"
-
-    - name: Распаковка CNI Plugin
+    - name: Установка CNI Plugin (не на Altlinux)
       become: true
-      ansible.builtin.unarchive:
-        src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
-        dest: /opt/cni/bin
-        remote_src: true
+      when:
+        - ansible_os_family != "Altlinux"
+      block:
+
+        - name: Скачать CNI plugin
+          ansible.builtin.get_url:
+            url: "{{ cni_plugins_url }}"
+            dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Создание папки /opt/cni/bin
+          ansible.builtin.file:
+            path: /opt/cni/bin
+            state: directory
+            owner: root
+            group: root
+            mode: "0775"
+
+        - name: Распаковка CNI Plugin
+          become: true
+          ansible.builtin.unarchive:
+            src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+            dest: /opt/cni/bin
+            remote_src: true
+
+    - name: Установка CNI plugin (на Altlinux)
+      become: true
+      when:
+        - ansible_os_family == "Altlinux"
+      block:
+
+        - name: Установка CNI plugin (на Altlinux)
+          community.general.apt_rpm:
+            update_cache: true
+            pkg:
+              - "cni-plugins"
+            state: latest
 
 # =============================================================================
 #                      Установка kubeadm, kubelet и kubectl
@@ -381,12 +484,10 @@
         pkg:
           - "kubernetes{{ kubernetes_major_version }}-kubeadm"
           - "kubernetes{{ kubernetes_major_version }}-kubelet"
-          - "kubernetes{{ kubernetes_major_version }}-crio"
-          - "cri-tools{{ kubernetes_major_version }}"
         state: latest
       notify:
         - Start kubelet
-        - Start crio
+
 # =============================================================================
 #                      Установка пакетов для Longhorn
 # =============================================================================

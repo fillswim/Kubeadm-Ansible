@@ -9,58 +9,86 @@
 
 # ========================================== Download Helm =========================================
 
-- name: Создание временной папки
-  ansible.builtin.file:
-    path: "{{ temp_folder }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "0775"
-
-- name: Download Helm
-  ansible.builtin.get_url:
-    url: "{{ helm_link }}"
-    dest: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Распаковать Helm
-  become: true
-  ansible.builtin.unarchive:
-    src: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
-    dest: "{{ temp_folder }}"
-    owner: root
-    group: root
-    mode: "0755"
-    remote_src: true
-
-- name: Скопировать Helm в /usr/local/bin/
-  become: true
-  ansible.builtin.copy:
-    src: "{{ temp_folder }}/linux-amd64/helm"
-    dest: /usr/local/bin/helm
-    owner: root
-    group: root
-    mode: "0755"
-    remote_src: true
-
-- name: Удалить директорию "{{ temp_folder }}"
-  ansible.builtin.file:
-    path: "{{ temp_folder }}"
-    state: absent
-
-- name: Проверить версию Helm
-  ignore_errors: true
-  changed_when: false
-  ansible.builtin.shell:
-    cmd: |
-      export PATH=$PATH:/usr/local/bin
-      helm version --short
-  register: checking_helm_version_output
-
-- name: Вывод версии Helm
-  ansible.builtin.debug:
-    var: checking_helm_version_output.stdout
+- name: Установка helm (не на Altlinux и не на RedOS)
   when:
-    - checking_helm_version_output.stdout is defined
+    - ansible_os_family != "Altlinux"
+    - ansible_os_family != "RED"
+  block:
+
+    - name: Создание временной папки
+      ansible.builtin.file:
+        path: "{{ temp_folder }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
+    - name: Download Helm
+      ansible.builtin.get_url:
+        url: "{{ helm_link }}"
+        dest: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Распаковать Helm
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ temp_folder }}/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+        dest: "{{ temp_folder }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Скопировать Helm в /usr/local/bin/
+      become: true
+      ansible.builtin.copy:
+        src: "{{ temp_folder }}/linux-amd64/helm"
+        dest: /usr/local/bin/helm
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Удалить директорию "{{ temp_folder }}"
+      ansible.builtin.file:
+        path: "{{ temp_folder }}"
+        state: absent
+
+    - name: Проверить версию Helm
+      ignore_errors: true
+      changed_when: false
+      ansible.builtin.shell:
+        cmd: |
+          export PATH=$PATH:/usr/local/bin
+          helm version --short
+      register: checking_helm_version_output
+
+    - name: Вывод версии Helm
+      ansible.builtin.debug:
+        var: checking_helm_version_output.stdout
+      when:
+        - checking_helm_version_output.stdout is defined
+
+- name: Установка Helm (на Altlinux)
+  when:
+    - ansible_os_family == "Altlinux"
+  block:
+
+    - name: Установка Helm (на Altlinux)
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - helm
+        state: latest
+
+- name: Установка Helm (на RedOS)
+  when:
+    - ansible_os_family == "RED"
+  block:
+
+    - name: Установка Helm (на RedOS)
+      ansible.builtin.dnf:
+        name:
+          - helm

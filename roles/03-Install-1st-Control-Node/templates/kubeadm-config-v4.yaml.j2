@@ -43,7 +43,6 @@ apiVersion: kubeadm.k8s.io/v1beta4
 certificatesDir: /etc/kubernetes/pki                                                        # Где будут находиться сертификаты
 caCertificateValidityPeriod: 87600h0m0s
 certificateValidityPeriod: 8760h0m0s
-# clusterName: kubernetes
 clusterName: {{ cluster_name }}                                                             # Доменное имя
 controllerManager: {}
 dns: {}
@@ -81,13 +80,15 @@ proxy:
   disabled: true                                                                              # disable kube-proxy
 scheduler: {}                                                                                 # kube-scheduler включен по умолчанию
 
----
+
 # ===================================================================
 #                           KubeletConfiguration
 # ===================================================================
+---
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 serverTLSBootstrap: true
+clusterDomain: {{ cluster_name }}
 clusterDNS:                                                                          # Нужно установить на каждой ноде кластера
 - {{ cluster_dns_server_ip }}                                                        # IP адреса DNS серверов кластера
 systemReserved:

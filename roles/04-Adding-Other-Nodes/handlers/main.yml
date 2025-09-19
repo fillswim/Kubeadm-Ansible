@@ -1,5 +1,4 @@
 ---
-# handlers file for 03-Install-1st-Master-Node
 
 - name: Restart kubelet
   become: true

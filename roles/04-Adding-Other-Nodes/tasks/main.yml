@@ -150,6 +150,16 @@
           args:
             executable: /bin/bash
 
+        - name: (Patch) Изменение конфигурации kubelet (только на Altlinux)
+          when:
+            - ansible_os_family == "Altlinux"
+          ansible.builtin.replace:
+            path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+            regexp: 'cluster.local'
+            replace: '{{ cluster_name }}'
+          notify:
+            - Restart kubelet
+
         - name: Создание папки /root/.kube
           ansible.builtin.file:
             path: /root/.kube
@@ -191,3 +201,13 @@
               --node-name {{ inventory_hostname }}
           args:
             executable: /bin/bash
+
+        - name: (Patch) Изменение конфигурации kubelet (только на Altlinux)
+          when:
+            - ansible_os_family == "Altlinux"
+          ansible.builtin.replace:
+            path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+            regexp: 'cluster.local'
+            replace: '{{ cluster_name }}'
+          notify:
+            - Restart kubelet
