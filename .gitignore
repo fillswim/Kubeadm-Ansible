@@ -5,5 +5,6 @@ venv/
 ENV/
 .venv/
 .conda
+.certs
 ansible.log
 roles/Install-K9s/files/k9s

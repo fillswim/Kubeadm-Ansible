@@ -41,6 +41,8 @@ ansible-playbook -i inventory/k8s1-alma.yaml Kubeadm_Reset-Cluster.yaml -b
 ansible-playbook -i inventory/k8s2-alma.yaml ping.yaml -b
 ansible-playbook -i inventory/k8s2-alma.yaml Kubeadm_Create-Cluster.yaml -b
 
+ansible-playbook -i inventory/k8s2-alma.yaml Role_01-Preparation-K8s.yaml -b
+
 ansible-playbook -i inventory/k8s2-alma.yaml Role_06-Delete-Node.yaml -b
 ansible-playbook -i inventory/k8s2-alma.yaml Kubeadm_Reset-Cluster.yaml -b
 

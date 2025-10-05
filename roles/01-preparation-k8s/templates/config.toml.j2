@@ -157,6 +157,7 @@ enabled_plugins = ["cri"]
     [plugins."io.containerd.grpc.v1.cri".image_decryption]
       key_model = "node"
 
+{% if docker_proxy_registry == "nexus" %}
     [plugins."io.containerd.grpc.v1.cri".registry]
       config_path = ""
 
@@ -185,8 +186,13 @@ enabled_plugins = ["cri"]
           insecure_skip_verify = true
         [plugins."io.containerd.grpc.v1.cri".registry.configs.{{ '\"' + 'http://' + nexus_image_repository + ':' + '8086' + '\"' }}.tls]
           insecure_skip_verify = true
-
       [plugins."io.containerd.grpc.v1.cri".registry.headers]
+{% endif %}
+
+{% if docker_proxy_registry == "harbor" %}
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "{{ containerd_certs_dir }}"
+{% endif %}
 
     [plugins."io.containerd.grpc.v1.cri".x509_key_pair_streaming]
       tls_cert_file = ""
@@ -197,10 +203,6 @@ enabled_plugins = ["cri"]
 
   [plugins."io.containerd.internal.v1.restart"]
     interval = "10s"
-
-  [plugins."io.containerd.internal.v1.tracing"]
-    sampling_ratio = 1.0
-    service_name = "containerd"
 
   [plugins."io.containerd.metadata.v1.bolt"]
     content_sharing_policy = "shared"

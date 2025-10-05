@@ -11,6 +11,17 @@ ansible_python_interpreter:     auto_silent
 # Nexus
 nexus_image_repository:         "nexus.fillswim.local"
 
+# Harbor Repository
+harbor_repository_url:          "harbor.fillswim.local"
+full_harbor_repository_url:     "https://harbor.fillswim.local"
+containerd_certs_dir:            "/etc/containerd/certs.d"
+harbor_repository_username:     "admin"
+harbor_repository_password:     "Harbor12345"
+harbor_repository_ca_file:      "{{ containerd_certs_dir }}/{{ harbor_repository_url }}/ca.crt"
+
+# docker_proxy_registry:          "nexus"
+docker_proxy_registry:          "harbor"
+
 # =====================================
 #           Alma Linux, Ubuntu
 # =====================================

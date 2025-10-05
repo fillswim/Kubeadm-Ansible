@@ -7,19 +7,19 @@ k8s2_alma:
 # Control nodes
 k8s_masters:
   hosts:
-    k8s2-alma-master-1.fillswim.local:
-      ansible_host: 192.168.2.131
-    k8s2-alma-master-2.fillswim.local:
-      ansible_host: 192.168.2.132
-    k8s2-alma-master-3.fillswim.local:
-      ansible_host: 192.168.2.133
+    # k8s2-alma-master-1.fillswim.local:
+    #   ansible_host: 192.168.2.131
+    # k8s2-alma-master-2.fillswim.local:
+    #   ansible_host: 192.168.2.132
+    # k8s2-alma-master-3.fillswim.local:
+    #   ansible_host: 192.168.2.133
 
 # Worker nodes
 k8s_workers:
   hosts:
     k8s2-alma-worker-1.fillswim.local:
       ansible_host: 192.168.2.134
-    k8s2-alma-worker-2.fillswim.local:
-      ansible_host: 192.168.2.135
-    k8s2-alma-worker-3.fillswim.local:
-      ansible_host: 192.168.2.136
+    # k8s2-alma-worker-2.fillswim.local:
+    #   ansible_host: 192.168.2.135
+    # k8s2-alma-worker-3.fillswim.local:
+    #   ansible_host: 192.168.2.136
