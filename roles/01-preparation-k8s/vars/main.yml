@@ -1,28 +1,29 @@
 ---
 
-# Harbor Docker Registry
-registries:
-  - name: "harbor.fillswim.local"                         # Название папки
-    repository_url: "https://harbor.fillswim.local"       # server
-    proxy_prefix: ""                                      # proxy_prefix
-    capabilities: ["pull", "resolve", "push"]
+# # Не работает пока (для Containerd config_path)
+# # Harbor Docker Registry (для Containerd config_path)
+# registries:
+#   - name: "harbor.fillswim.local"                         # Название папки
+#     repository_url: "https://harbor.fillswim.local"       # server
+#     proxy_prefix: ""                                      # proxy_prefix
+#     capabilities: ["pull", "resolve", "push"]
 
-  - name: "registry-1.docker.io"
-    repository_url: "https://docker.io"
-    proxy_prefix: "/docker-proxy-docker.io"
-    capabilities: ["pull", "resolve"]
+#   - name: "registry-1.docker.io"
+#     repository_url: "https://docker.io"
+#     proxy_prefix: "/docker-proxy-docker.io"
+#     capabilities: ["pull", "resolve"]
 
-  - name: "quay.io"
-    repository_url: "https://quay.io"
-    proxy_prefix: "/docker-proxy-quay.io"
-    capabilities: ["pull", "resolve"]
+#   - name: "quay.io"
+#     repository_url: "https://quay.io"
+#     proxy_prefix: "/docker-proxy-quay.io"
+#     capabilities: ["pull", "resolve"]
 
-  - name: "registry.k8s.io"
-    repository_url: "https://registry.k8s.io"
-    proxy_prefix: "/docker-proxy-registry.k8s.io"
-    capabilities: ["pull", "resolve"]
+#   - name: "registry.k8s.io"
+#     repository_url: "https://registry.k8s.io"
+#     proxy_prefix: "/docker-proxy-registry.k8s.io"
+#     capabilities: ["pull", "resolve"]
 
-  - name: "public.ecr.aws"
-    repository_url: "https://public.ecr.aws"
-    proxy_prefix: "/docker-proxy-public.ecr.aws"
-    capabilities: ["pull", "resolve"]
+#   - name: "public.ecr.aws"
+#     repository_url: "https://public.ecr.aws"
+#     proxy_prefix: "/docker-proxy-public.ecr.aws"
+#     capabilities: ["pull", "resolve"]

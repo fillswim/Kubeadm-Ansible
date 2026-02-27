@@ -52,8 +52,9 @@ metallb_link:                   "https://raw.githubusercontent.com/metallb/metal
 IPAddressPool:                  "192.168.2.217-192.168.2.219"
 
 # Helm
-helm_version:                   3.18.0
-helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+# helm_version:                   3.18.0
+helm_version:                   4.0.0
+# helm_link:                      "https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz"
 
 # LVM
 disk_name:                      "sdb"

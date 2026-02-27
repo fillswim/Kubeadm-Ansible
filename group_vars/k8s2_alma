@@ -14,11 +14,13 @@ nexus_image_repository:         "nexus.fillswim.local"
 # Harbor Repository
 harbor_repository_url:          "harbor.fillswim.local"
 full_harbor_repository_url:     "https://harbor.fillswim.local"
-containerd_certs_dir:            "/etc/containerd/certs.d"
-harbor_repository_username:     "admin"
-harbor_repository_password:     "Harbor12345"
+containerd_certs_dir:           "/etc/containerd/certs.d"
 harbor_repository_ca_file:      "{{ containerd_certs_dir }}/{{ harbor_repository_url }}/ca.crt"
 
+# harbor_repository_username:     "admin"
+# harbor_repository_password:     "Harbor12345"
+
+# Docker Proxy Registry
 # docker_proxy_registry:          "nexus"
 docker_proxy_registry:          "harbor"
 
@@ -32,7 +34,9 @@ kubernetes_minor_version:       "1.33.0"
 
 # Containerd
 enable_containerd:              true
-containerd_version:             "2.1.1"
+containerd_version:             "2.1.4"
+
+enable_crio:                    false
 
 # Runc
 enable_runc:                    true
@@ -103,13 +107,23 @@ cluster_dns_server_ip:          10.96.0.10
 #                               Install-Helm.yaml
 # ==============================================================================
 
-helm_version:                   3.18.3
+# helm_version:                   3.18.3
+helm_version:                   4.0.0
 
 # ==============================================================================
 #                               Install-K9s.yaml
 # ==============================================================================
 
 k9s_version:                    "0.50.7"
+
+
+# ==============================================================================
+#                                 LVM
+# ==============================================================================
+disk_name:                      "vdb"
+lvm_project_name:               "longhorn"
+mount_folder:                   "/mnt/lh_disk1"
+fs_type:                        "xfs"
 
 # ==============================================================================
 #                            Install-NodeLocalDNS.yaml

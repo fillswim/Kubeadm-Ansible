@@ -8,17 +8,17 @@ source .venv/bin/activate
 # ==============================================================================
 #                                  K8s1 RHEL
 # ==============================================================================
-ansible-playbook -i inventory/k8s1_rhel.yaml ping.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml ping.yaml -b
 
-ansible-playbook -i inventory/k8s1_rhel.yaml Role_01-Preparation-K8s.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Create-LVM-Partition.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Enable-SCR.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Install-K9s.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Update-Calico.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Install-Helm.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Update-MetalLB.yaml -b
-ansible-playbook -i inventory/k8s1_rhel.yaml Install-ArgoCD.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Create-LVM-Partition.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Install-K9s.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Enable-SCR.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Install-K9s.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Update-Calico.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Install-Helm.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Update-MetalLB.yaml -b
+ansible-playbook -i inventory/k8s1-rhel.yaml Install-ArgoCD.yaml -b
 
 # ==============================================================================
 #                              K8s1 Alma Linux 9.6
@@ -34,6 +34,8 @@ ansible-playbook -i inventory/k8s1-alma.yaml Install-K9s.yaml -b
 ansible-playbook -i inventory/k8s1-alma.yaml Role_06-Delete-Node.yaml -b
 ansible-playbook -i inventory/k8s1-alma.yaml Kubeadm_Reset-Cluster.yaml -b
 
+ansible-playbook -i inventory/k8s1-alma.yaml Role_02-High-Availability.yaml -b
+
 # ==============================================================================
 #                              K8s2 Alma Linux 9.6
 # ==============================================================================
@@ -42,9 +44,13 @@ ansible-playbook -i inventory/k8s2-alma.yaml ping.yaml -b
 ansible-playbook -i inventory/k8s2-alma.yaml Kubeadm_Create-Cluster.yaml -b
 
 ansible-playbook -i inventory/k8s2-alma.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/k8s2-alma.yaml Create-LVM-Partition.yaml -b
 
 ansible-playbook -i inventory/k8s2-alma.yaml Role_06-Delete-Node.yaml -b
 ansible-playbook -i inventory/k8s2-alma.yaml Kubeadm_Reset-Cluster.yaml -b
+ansible-playbook -i inventory/k8s2-alma.yaml Install-Helm.yaml -b
+
+ansible-playbook -i inventory/k8s2-alma.yaml Role_02-High-Availability.yaml -b
 
 # ==============================================================================
 #                              K8s1 Altlinux 10.4

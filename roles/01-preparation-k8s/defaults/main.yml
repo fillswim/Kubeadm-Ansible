@@ -15,3 +15,8 @@ runc_url: "{{ full_nexus_raw_hosted_repository_url }}/runc/v{{ runc_version }}/r
 
 # "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
 cni_plugins_url: "{{ full_nexus_raw_hosted_repository_url }}/containernetworking/plugins/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+
+ca_certificate_redhat_path: "/etc/pki/ca-trust/source/anchors/"
+
+nerdctl_version: "2.1.6"
+nerdctl_url: "https://github.com/containerd/nerdctl/releases/download/v{{ nerdctl_version }}/nerdctl-{{ nerdctl_version }}-linux-amd64.tar.gz"

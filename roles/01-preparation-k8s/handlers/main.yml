@@ -47,3 +47,7 @@
   become: true
   throttle: 1
   ansible.builtin.reboot:
+
+- name: Run update-ca-trust RedHat
+  become: true
+  ansible.builtin.command: update-ca-trust
