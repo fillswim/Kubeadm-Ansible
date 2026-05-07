@@ -13,13 +13,24 @@ containerd_url: "{{ nexus_raw_hosted_repository_url }}/containerd/v{{ containerd
 # "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
 containerd_service_url: "{{ nexus_raw_hosted_repository_url }}/containerd/service/containerd.service"
 
+# =============================================================================
+#                         Nexus Docker Repository
+# =============================================================================
+
+nexus_repository_docker_proxy_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_proxy_port }}"
+nexus_repository_docker_hosted_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_hosted_port }}"
 
 # =============================================================================
-#                                 Сертификаты
+#                         Harbor Docker Repository
+# =============================================================================
+
+harbor_repository_docker_proxy_url: "{{ harbor_repository_http_method }}://{{ harbor_repository_name }}"
+
+# =============================================================================
+#                           Сертификаты для ContainerD
 # =============================================================================
 
 containerd_certs_dir: "/etc/containerd/certs.d"
-
 
 # =============================================================================
 #                            Path to CRI Socket ContainerD

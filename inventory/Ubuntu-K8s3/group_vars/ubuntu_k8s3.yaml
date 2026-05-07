@@ -27,16 +27,12 @@ nexus_repository_docker_proxy_port:  "8084"
 # Docker Hosted Repository
 nexus_repository_docker_hosted_port: "8086"
 
-nexus_repository_docker_proxy_url:  "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_proxy_port }}"
-nexus_repository_docker_hosted_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_hosted_port }}"
-
 # ==============================================================================
 #                                      Harbor
 # ==============================================================================
 
 harbor_repository_name: "harbor.fillswim.local"
 harbor_repository_http_method: "https"
-harbor_repository_docker_proxy_url: "{{ harbor_repository_http_method }}://{{ harbor_repository_name }}"
 
 # ==============================================================================
 #                                Install ContainerD
