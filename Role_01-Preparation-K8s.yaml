@@ -27,6 +27,12 @@
     # # Установка пакетов K8s
     # - role: 01-preparation-install-packages-k8s
 
+    # # Установка NerdCTL
+    # - role: 01-preparation-install-nerdctl
+    #   when:
+    #     - install_nerdctl
+
+    # Установка ContainerD
     - role: 01-preparation-install-containerd
       when:
         - install_containerd
@@ -58,11 +64,6 @@
 
     # # Установка пакетов для Longhorn
     # - role: 01-preparation-install-packages-longhorn
-
-    # # Установка NerdCTL
-    # - role: 01-preparation-install-nerdctl
-    #   when:
-    #     - install_nerdctl
 
     # # Установка Helm
     # - role: 01-preparation-install-helm

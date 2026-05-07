@@ -181,6 +181,8 @@ enabled_plugins = ["cri"]
 #      password = "XXXXXXXXXX"
 
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+
+        # Docker Proxy Registry
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
           endpoint = [
             "{{ nexus_repository_docker_proxy_url }}"
@@ -209,16 +211,12 @@ enabled_plugins = ["cri"]
           endpoint = [
             "{{ nexus_repository_docker_proxy_url }}"
           ]
-{# 
-#        [plugins."io.containerd.grpc.v1.cri".registry.mirrors.{{ '\"' + nexus_repository_name + ':' + '8086' + '\"' }}]
-#          endpoint = [{{ '\"' + 'http://' + nexus_repository_name + ':' + '8086' + '\"' }}]
 
-#      [plugins."io.containerd.grpc.v1.cri".registry.configs]
-#        [plugins."io.containerd.grpc.v1.cri".registry.configs.{{ '\"' + 'http://' + nexus_repository_name + ':' + '8084' + '\"' }}.tls]
-#          insecure_skip_verify = true
-#        [plugins."io.containerd.grpc.v1.cri".registry.configs.{{ '\"' + 'http://' + nexus_repository_name + ':' + '8086' + '\"' }}.tls]
-#          insecure_skip_verify = true
- #}
+        # Docker Hosted Registry
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."{{ nexus_repository_name }}:{{ nexus_repository_docker_hosted_port }}"]
+          endpoint = [
+            "{{ nexus_repository_docker_hosted_url }}"
+          ]
 
       [plugins."io.containerd.grpc.v1.cri".registry.headers]
 
@@ -237,7 +235,21 @@ enabled_plugins = ["cri"]
 
       [plugins."io.containerd.grpc.v1.cri".registry.auths]
 
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ harbor_repository_name }}".tls]
+{% if image_repository_http_method == "https" %}
+          ca_file = "{{ containerd_certs_dir }}/{{ harbor_repository_name }}/{{ harbor_repository_name }}.crt"
+{% else %}
+          insecure_skip_verify = true
+{% endif %}
+
+#    [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ harbor_repository_name }}".auth]
+#      username = "XXXXXXXXXX"
+#      password = "XXXXXXXXXX"
+
       [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+
+        # Docker Proxy Registry
         [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
           endpoint = [
             "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-docker.io"
@@ -254,11 +266,6 @@ enabled_plugins = ["cri"]
           endpoint = [
             "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-public.ecr.aws"
           ]
-
-      [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ harbor_repository_name }}".tls]
-        ca_file   = "{{ containerd_certs_dir }}/{{ harbor_repository_name }}/{{ harbor_repository_name }}.crt"
-        cert_file = ""
-        key_file  = ""
 
       [plugins."io.containerd.grpc.v1.cri".registry.headers]
 

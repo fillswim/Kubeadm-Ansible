@@ -10,10 +10,17 @@ ansible_python_interpreter: auto_silent
 #                                      Nexus
 # ==============================================================================
 
+# nexus-lxc.fillswim.local (HTTPS)
 nexus_repository_name: "nexus-lxc.fillswim.local"
 nexus_repository_http_method: "https"
+nexus_repository_http_port: "8443"
+
+# # nexus.fillswim.local (HTTP)
+# nexus_repository_name: "nexus.fillswim.local"
+# nexus_repository_http_method: "http"
+# nexus_repository_http_port: "8081"
+
 # Raw Hosted Repository
-nexus_repository_raw_hosted_repository_port: "8443"
 nexus_repository_raw_hosted_repository_name: "repository/raw-hosted"
 # Docker Proxy Repository
 nexus_repository_docker_proxy_port:  "8084"
@@ -22,7 +29,6 @@ nexus_repository_docker_hosted_port: "8086"
 
 nexus_repository_docker_proxy_url:  "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_proxy_port }}"
 nexus_repository_docker_hosted_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_hosted_port }}"
-
 
 # ==============================================================================
 #                                      Harbor
@@ -43,8 +49,21 @@ containerd_version: "2.3.0"
 docker_proxy_registry_type: "nexus"
 # docker_proxy_registry_type: "harbor"
 
+# nexus-lxc.fillswim.local (HTTPS)
 image_repository_name: "nexus-lxc.fillswim.local"
 image_repository_http_method: "https"
 
+# # nexus.fillswim.local (HTTP)
+# image_repository_name: "nexus.fillswim.local"
+# image_repository_http_method: "http"
 
+# # harbor.fillswim.local (HTTPS)
+# image_repository_name: "harbor.fillswim.local"
+# image_repository_http_method: "https"
 
+# ==============================================================================
+#                                Install NerdCTL
+# ==============================================================================
+
+install_nerdctl: true
+nerdctl_version: "2.2.2"
