@@ -1,0 +1,50 @@
+# ==============================================================================
+#                                SSH Settings
+# ==============================================================================
+
+ansible_user: root
+ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+ansible_python_interpreter: auto_silent
+
+# ==============================================================================
+#                                      Nexus
+# ==============================================================================
+
+nexus_repository_name: "nexus-lxc.fillswim.local"
+nexus_repository_http_method: "https"
+# Raw Hosted Repository
+nexus_repository_raw_hosted_repository_port: "8443"
+nexus_repository_raw_hosted_repository_name: "repository/raw-hosted"
+# Docker Proxy Repository
+nexus_repository_docker_proxy_port:  "8084"
+# Docker Hosted Repository
+nexus_repository_docker_hosted_port: "8086"
+
+nexus_repository_docker_proxy_url:  "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_proxy_port }}"
+nexus_repository_docker_hosted_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_docker_hosted_port }}"
+
+
+# ==============================================================================
+#                                      Harbor
+# ==============================================================================
+
+harbor_repository_name: "harbor.fillswim.local"
+harbor_repository_http_method: "https"
+harbor_repository_docker_proxy_url: "{{ harbor_repository_http_method }}://{{ harbor_repository_name }}"
+
+# ==============================================================================
+#                                Install ContainerD
+# ==============================================================================
+
+install_containerd: true
+containerd_version: "2.3.0"
+
+# Docker Proxy Registry Type
+docker_proxy_registry_type: "nexus"
+# docker_proxy_registry_type: "harbor"
+
+image_repository_name: "nexus-lxc.fillswim.local"
+image_repository_http_method: "https"
+
+
+

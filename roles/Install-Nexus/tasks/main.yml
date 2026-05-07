@@ -10,7 +10,7 @@
 # ======================================== Install packages ========================================
 
 - name: Install packages in Ubuntu
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
   ansible.builtin.apt:
     name: "{{ packages }}"
   vars:
@@ -38,9 +38,18 @@
 
 # ========================================= Установка Nexus ========================================
 
-- name: Download Nexus
-  ansible.builtin.get_url:
-    url: "{{ nexus_tar_url }}"
+# - name: Download Nexus "{{ nexus_tar_url }}"
+#   ansible.builtin.get_url:
+#     url: "{{ nexus_tar_url }}"
+#     dest: "{{ nexus_folder }}/{{ nexus_tar_name }}"
+#     timeout: 60
+#     owner: root
+#     group: root
+#     mode: "0644"
+
+- name: Скопировать "{{ nexus_tar_name }}"
+  ansible.builtin.copy:
+    src: "{{ nexus_tar_name }}"
     dest: "{{ nexus_folder }}/{{ nexus_tar_name }}"
     owner: root
     group: root

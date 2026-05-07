@@ -1,0 +1,17 @@
+server = "{{ item.repository_url }}"
+
+[host."{{ full_harbor_repository_url }}"]
+  capabilities = {{ item.capabilities }}
+  skip_verify = false
+
+  [host."{{ full_harbor_repository_url }}".tls]
+    ca_file = "{{ harbor_repository_ca_file }}"
+  
+{% if item.proxy_prefix != "" %}
+  [host."{{ full_harbor_repository_url }}".paths]
+    prefix = "{{ item.proxy_prefix }}"
+{% endif %}
+  
+  [host."{{ full_harbor_repository_url }}".auth]
+    username = "{{ harbor_repository_username }}"
+    password = "{{ harbor_repository_password }}"

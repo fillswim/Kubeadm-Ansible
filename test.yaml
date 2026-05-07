@@ -1,0 +1,10 @@
+---
+- name: Test
+  # serial: 1
+  # order: sorted
+  # hosts: k8s_workers
+  hosts: all
+  # ansible.builtin.service_facts:
+
+  roles:
+    - role: test

@@ -1,0 +1,28 @@
+---
+
+# =============================================================================
+#                          Nexus RAW Hosted Repository
+# =============================================================================
+
+# Nexus Raw hosted repository URL
+nexus_raw_hosted_repository_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_raw_hosted_repository_port }}/{{ nexus_repository_raw_hosted_repository_name }}"
+
+# "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+containerd_url: "{{ nexus_raw_hosted_repository_url }}/containerd/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+
+# "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+containerd_service_url: "{{ nexus_raw_hosted_repository_url }}/containerd/service/containerd.service"
+
+
+# =============================================================================
+#                                 Сертификаты
+# =============================================================================
+
+containerd_certs_dir: "/etc/containerd/certs.d"
+
+
+# =============================================================================
+#                            Path to CRI Socket ContainerD
+# =============================================================================
+
+path_to_cri_socket_containerd: "unix:///var/run/containerd/containerd.sock"

@@ -6,4 +6,70 @@
   hosts: "all"
 
   roles:
-    - role: 01-preparation-k8s
+    # # - role: 01-preparation-k8s # (old)
+    # - role: 01-preparation-configure-os-common
+    # - role: 01-preparation-configure-os-kernel
+
+    # # Добавление APT-hosted репозитория Nexus (для kubeadm, kubelet и kubectl)
+    # - role: 01-preparation-repository-add-apt
+    #   vars:
+    #     repository_name: nexus-lxc
+    #     key_url: "https://nexus-lxc.fillswim.local:8443/repository/gpg-keys/public-nexus-lxc.gpg.key"
+    #     repository_url_list: "https://nexus-lxc.fillswim.local:8443/repository/apt-hosted stable main"
+
+    # # # Добавление APT репозитория Kubernetes (Internet)
+    # # - role: 01-preparation-repository-add-apt
+    # #   vars:
+    # #     repository_name: kubernetes
+    # #     key_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
+    # #     repository_url_list: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+
+    # # Установка пакетов K8s
+    # - role: 01-preparation-install-packages-k8s
+
+    - role: 01-preparation-install-containerd
+      when:
+        - install_containerd
+
+    # # Добавление APT репозитория CRI-O (Internet)
+    # - role: 01-preparation-repository-add-apt
+    #   vars:
+    #     repository_name: cri-o
+    #     key_url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
+    #     repository_url_list: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+
+    # - role: 01-preparation-install-crio
+    #   when:
+    #     - install_crio
+
+    # # Добавление CA-сертификатов для Harbor и Nexus (после установки Containerd или CRI-O)
+    # - role: 01-preparation-add-ca-certs-for-harbor
+    # - role: 01-preparation-add-ca-certs-for-nexus
+
+    # # Установка CNI Plugin
+    # - role: 01-preparation-install-cni-plugin
+    #   when:
+    #     - install_cni_plugins
+
+    # # Установка Runc
+    # - role: 01-preparation-install-runc
+    #   when:
+    #     - install_runc
+
+    # # Установка пакетов для Longhorn
+    # - role: 01-preparation-install-packages-longhorn
+
+    # # Установка NerdCTL
+    # - role: 01-preparation-install-nerdctl
+    #   when:
+    #     - install_nerdctl
+
+    # # Установка Helm
+    # - role: 01-preparation-install-helm
+    #   when:
+    #     - install_helm
+
+    # # Установка K9s
+    # - role: 01-preparation-install-k9s
+    #   when:
+    #     - install_k9s

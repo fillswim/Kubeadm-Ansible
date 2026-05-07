@@ -1,0 +1,76 @@
+---
+
+# =============================================================================
+#                                      RedHat
+# =============================================================================
+
+- name: Block для "RedHat"
+  when:
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+  become: true
+  block:
+
+    - name: Add kubernetes repository
+      ansible.builtin.yum_repository:
+        name: kubernetes
+        file: kubernetes
+        description: kubernetes
+        baseurl: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/"
+        enabled: true
+        gpgcheck: true
+        gpgkey: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/rpm/repodata/repomd.xml.key"
+        exclude: "kubelet kubeadm kubectl cri-tools kubernetes-cni"
+
+    - name: Установка kubeadm, kubelet и kubectl для "RedHat"
+      register: install_packages_output
+      ansible.builtin.dnf:
+        name:
+          - "kubeadm-{{ kubernetes_minor_version }}-*"
+          - "kubelet-{{ kubernetes_minor_version }}-*"
+          - "kubectl-{{ kubernetes_minor_version }}-*"
+        disable_excludes: all
+        exclude: kubernetes
+        state: present
+      notify:
+        - Start kubelet
+
+# =============================================================================
+#                                      Ubuntu
+# =============================================================================
+
+- name: Block для "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  become: true
+  block:
+
+    - name: Установка kubeadm, kubelet и kubectl для "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: present
+      notify:
+        - Start kubelet
+
+# =============================================================================
+#                                   Altlinux
+# =============================================================================
+
+- name: Block для "Altlinux"
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  become: true
+  block:
+
+    - name: Установка kubeadm, kubelet и kubectl для "Altlinux"
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - "kubernetes{{ kubernetes_major_version }}-kubeadm"
+          - "kubernetes{{ kubernetes_major_version }}-kubelet"
+        state: latest
+      notify:
+        - Start kubelet

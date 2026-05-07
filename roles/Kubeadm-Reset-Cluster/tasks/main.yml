@@ -103,7 +103,7 @@
 
 - name: Удаление пакетов на ноде (RedHat)
   when:
-    - ansible_os_family == "RedHat" or ansible_os_family == "RED"
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
   ansible.builtin.package:
     name:
       - kubeadm
@@ -115,7 +115,7 @@
 
 - name: Удаление пакетов на ноде (Ubuntu)
   when:
-    - ansible_os_family == "Ubuntu"
+    - ansible_facts.os_family == "Ubuntu"
   ansible.builtin.apt:
     name:
       - kubeadm
@@ -127,7 +127,7 @@
 
 - name: Удаление пакетов на ноде (Altlinux)
   when:
-    - ansible_os_family == "Altlinux"
+    - ansible_facts.os_family == "Altlinux"
   community.general.apt_rpm:
     pkg:
       - "kubernetes{{ kubernetes_major_version }}-kubeadm"

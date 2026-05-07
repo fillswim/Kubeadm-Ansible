@@ -1,0 +1,26 @@
+---
+
+all:
+  children:
+    nexus:
+
+nexus:
+  children:
+    nexus_369:
+    nexus_391_vm:
+    nexus_391_lxc:
+
+# nexus_369:
+#   hosts:
+#     nexus-ubuntu.fillswim.local:
+#       ansible_host: 192.168.2.44
+
+nexus_391_vm:
+  hosts:
+    nexus-vm-1.fillswim.local:
+      ansible_host: 192.168.2.46
+
+# nexus_391_lxc:
+#   hosts:
+#     nexus-lxc-1.fillswim.local:
+#       ansible_host: 192.168.2.47

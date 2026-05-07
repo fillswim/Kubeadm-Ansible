@@ -1,0 +1,24 @@
+---
+# tasks file for 01-prepare-vm-for-k8s
+
+# - name: Ping
+#   become: true
+#   ansible.builtin.ping:
+
+
+
+
+
+
+
+
+
+# =============================================================================
+#                              Перезагрузка сервера
+# =============================================================================
+
+# - name: Reboot
+#   when: sysctl_ret.changed
+#   throttle: 1
+#   become: true
+#   ansible.builtin.reboot:

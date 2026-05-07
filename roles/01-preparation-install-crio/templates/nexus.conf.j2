@@ -1,0 +1,43 @@
+unqualified-search-registries = ["docker.io", "quay.io", "registry.k8s.io", "ghcr.io", "gcr.io", "k8s.gcr.io", "public.ecr.aws"]
+
+[[registry]]
+prefix   = "docker.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "quay.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "registry.k8s.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "ghcr.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "gcr.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "k8s.gcr.io"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true
+
+[[registry]]
+prefix   = "public.ecr.aws"
+location = {{ '\"' + nexus_image_repository + ':' + '8084' + '\"' }}
+blocked  = false
+insecure = true

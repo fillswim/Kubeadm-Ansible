@@ -1,0 +1,144 @@
+---
+
+# =============================================================================
+#                        Установка ContainerD (не на Altlinux)
+# =============================================================================
+
+- name: Установка containerd (не на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family != "Altlinux"
+  block:
+
+    # ======================================================================
+    #                           Containerd Install
+    # ======================================================================
+
+    - name: Загрузить ContainerD "{{ containerd_url }}"
+      ansible.builtin.get_url:
+        url: "{{ containerd_url }}"
+        dest: "{{ kubeadm_temp_folder }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        owner: root
+        group: root
+        mode: "0644"
+      register: containerd_download_result
+
+    - name: Распаковать ContainerD "{{ kubeadm_temp_folder }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ kubeadm_temp_folder }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+        dest: /usr/local
+        remote_src: true
+
+    # ======================================================================
+    #                         Containerd config.toml
+    # ======================================================================
+
+    - name: Создание папки /etc/containerd
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Скопировать config.toml
+      become: true
+      ansible.builtin.template:
+        src: config.toml.j2
+        dest: /etc/containerd/config.toml
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart containerd
+
+    - name: Скопировать crictl.yaml
+      become: true
+      ansible.builtin.template:
+        src: crictl.yaml.j2
+        dest: /etc/crictl.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart containerd
+
+    # ======================================================================
+    #                           Containerd Service
+    # ======================================================================
+
+    - name: Создание папку /usr/local/lib/systemd/system
+      ansible.builtin.file:
+        path: /usr/local/lib/systemd/system
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Скопировать containerd.service
+      ansible.builtin.get_url:
+        url: "{{ containerd_service_url }}"
+        dest: /usr/local/lib/systemd/system/containerd.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Start containerd
+
+    - name: Добавить /usr/local/bin в .bashrc
+      become: true
+      ansible.builtin.lineinfile:
+        path: /root/.bashrc
+        line: "{{ item }}"
+      with_items:
+        - "export PATH=$PATH:/usr/local/bin"
+
+# ======================================================================
+#                    Установка ContainerD (на Altlinux)
+# ======================================================================
+
+- name: Установка containerd (на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  block:
+
+    - name: Установка containerd (на Altlinux)
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - "containerd"
+          - "cri-tools{{ kubernetes_major_version }}"
+        state: latest
+      notify:
+        - Start containerd
+
+# =============================================================================
+#                  Добавление CA сертификатов для ContainerD
+# =============================================================================
+
+- name: Блок для добавления CA сертификатов для ContainerD, если репозиторий HTTPS
+  become: true
+  when:
+    - image_repository_http_method == "https"
+  block:
+
+    - name: Создание папки для репозиториев "{{ containerd_certs_dir }}"
+      ansible.builtin.file:
+        path: "{{ containerd_certs_dir }}/{{ image_repository_name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Скопировать сертификаты CA в "{{ containerd_certs_dir }}"
+      become: true
+      ansible.builtin.copy:
+        src: ".certs/{{ image_repository_name }}.crt"
+        dest: "{{ containerd_certs_dir }}/{{ image_repository_name }}/{{ image_repository_name }}.crt"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart containerd

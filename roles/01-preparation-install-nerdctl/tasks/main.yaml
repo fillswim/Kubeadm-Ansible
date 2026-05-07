@@ -1,0 +1,25 @@
+---
+
+# ======================================================================
+#                                NerdCTL
+# ======================================================================
+
+- name: Загрузить NerdCTL
+  ansible.builtin.get_url:
+    url: "{{ nerdctl_url }}"
+    dest: /root/download/nerdctl-{{ nerdctl_version }}-linux-amd64.tar.gz
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Распаковать NerdCTL
+  become: true
+  ansible.builtin.unarchive:
+    src: /root/download/nerdctl-{{ nerdctl_version }}-linux-amd64.tar.gz
+    dest: /usr/local/bin
+    remote_src: true
+    extra_opts:
+      - nerdctl
+    owner: root
+    group: root
+    mode: "0755"

@@ -17,7 +17,7 @@
 
 - name: Создание системного пользователя для HAProxy (для Altlinux)
   when:
-    - ansible_os_family == "Altlinux"
+    - ansible_facts.os_family == "Altlinux"
   ansible.builtin.user:
     name: haproxy
     system: true
@@ -28,7 +28,7 @@
 
 - name: Установка пакетов для Keepalived и HAProxy (не на Altlinux)
   when:
-    - ansible_os_family != "Altlinux"
+    - ansible_facts.os_family != "Altlinux"
   ansible.builtin.package:
     name:
       - keepalived
@@ -37,7 +37,7 @@
 
 - name: Установка пакетов для Keepalived и HAProxy (на Altlinux)
   when:
-    - ansible_os_family == "Altlinux"
+    - ansible_facts.os_family == "Altlinux"
   community.general.apt_rpm:
     update_cache: true
     pkg:

@@ -1,0 +1,46 @@
+---
+
+# =============================================================================
+#                              Не на Altlinux
+# =============================================================================
+
+- name: Установка Runc (не на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family != "Altlinux"
+  block:
+
+    - name: Загрузить Runc
+      ansible.builtin.get_url:
+        url: "{{ runc_url }}"
+        dest: /root/download/runc.amd64
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Установить Runc
+      become: true
+      ansible.builtin.copy:
+        src: /root/download/runc.amd64
+        dest: /usr/local/sbin/runc
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+
+# =============================================================================
+#                                   Altlinux
+# =============================================================================
+
+- name: Установка Runc (на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  block:
+
+    - name: Установка Runc (на Altlinux)
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - "runc"
+        state: latest

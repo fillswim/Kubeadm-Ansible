@@ -152,7 +152,7 @@
 
         - name: (Patch) Изменение конфигурации kubelet (только на Altlinux)
           when:
-            - ansible_os_family == "Altlinux"
+            - ansible_facts.os_family == "Altlinux"
           ansible.builtin.replace:
             path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
             regexp: 'cluster.local'
@@ -204,7 +204,7 @@
 
         - name: (Patch) Изменение конфигурации kubelet (только на Altlinux)
           when:
-            - ansible_os_family == "Altlinux"
+            - ansible_facts.os_family == "Altlinux"
           ansible.builtin.replace:
             path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
             regexp: 'cluster.local'

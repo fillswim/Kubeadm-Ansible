@@ -33,7 +33,7 @@
 - name: Скопировать kubeadm-config.yaml (не на Altlinux)
   become: true
   when:
-    - ansible_os_family != "Altlinux"
+    - ansible_facts.os_family != "Altlinux"
   block:
 
     - name: Скопировать kubeadm-config.yaml (v1beta3)
@@ -61,7 +61,7 @@
 - name: Скопировать kubeadm-config.yaml (v1beta3) на Altlinux
   become: true
   when:
-    - ansible_os_family == "Altlinux"
+    - ansible_facts.os_family == "Altlinux"
   ansible.builtin.template:
     src: kubeadm-config-altlinux-v3.yaml.j2
     dest: /root/kubeadm/kubeadm-config.yaml
@@ -108,7 +108,7 @@
 
 - name: (Patch) Изменение конфигурации kubelet (только на Altlinux)
   when:
-    - ansible_os_family == "Altlinux"
+    - ansible_facts.os_family == "Altlinux"
   ansible.builtin.replace:
     path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
     regexp: 'cluster.local'

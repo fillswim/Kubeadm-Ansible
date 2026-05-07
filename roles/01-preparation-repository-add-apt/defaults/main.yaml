@@ -1,0 +1,14 @@
+---
+
+# ================================================
+#                    Repository
+# ================================================
+
+# Temp Path
+key_tmp_path: /tmp
+key_file_name: "{{ repository_name }}.key"
+gpg_file_name: "{{ repository_name }}.gpg"
+repository_file_name: "{{ repository_name }}.list"
+
+# Keyrings Path
+repository_keyrings_path: /etc/apt/keyrings

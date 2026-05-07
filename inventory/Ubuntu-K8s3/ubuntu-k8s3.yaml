@@ -1,0 +1,25 @@
+---
+ubuntu_k8s3:
+  children:
+    k8s_masters:
+    k8s_workers:
+
+# Control nodes
+k8s_masters:
+  hosts:
+    ubuntu-k8s3-master-1.lab.local:
+      ansible_host: 192.168.2.101
+    # ubuntu-k8s3-master-2.lab.local:
+    #   ansible_host: 192.168.2.102
+    # ubuntu-k8s3-master-3.lab.local:
+    #   ansible_host: 192.168.2.103
+
+# Worker nodes
+k8s_workers:
+  hosts:
+    # ubuntu-k8s3-worker-1.lab.local:
+    #   ansible_host: 192.168.2.104
+    # ubuntu-k8s3-worker-2.lab.local:
+    #   ansible_host: 192.168.2.105
+    # ubuntu-k8s3-worker-3.lab.local:
+    #   ansible_host: 192.168.2.106

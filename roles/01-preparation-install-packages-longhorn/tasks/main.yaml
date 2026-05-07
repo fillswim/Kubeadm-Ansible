@@ -1,0 +1,117 @@
+---
+
+# =============================================================================
+#                         Общие пакеты для Longhorn и LVM
+# =============================================================================
+
+- name: Установка пакетов для Longhorn и LVM (общие)
+  ansible.builtin.package:
+    name:
+      - cifs-utils
+      - lvm2
+      - xfsprogs
+
+# =============================================================================
+#                                      RedHat 
+# =============================================================================
+
+- name: Block для "RedHat"
+  when:
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+  become: true
+  block:
+
+    - name: Установка специфических пакетов для Longhorn и LVM на RedHat
+      ansible.builtin.dnf:
+        name:
+          - iscsi-initiator-utils
+          - nfs-utils
+          - udisks2-iscsi
+          - httpd-tools
+          - parted
+      notify:
+        - Start iSCSI
+
+    - name: Установка passlib (для Longhorn) на "RedHat"
+      ansible.builtin.pip:
+        name:
+          - passlib
+
+    - name: Установка пакетов pip для Calico на "RedHat"
+      ansible.builtin.pip:
+        name:
+          - pyyaml
+          - kubernetes
+          - jsonpatch
+
+# =============================================================================
+#                                      Ubuntu 
+# =============================================================================
+
+# - name: Установка специфических пакетов для Longhorn и LVM на "Ubuntu"
+#   when:
+#     - ansible_facts.os_family == "Debian"
+#   ansible.builtin.package:
+#     name:
+#       - open-iscsi
+#       - nfs-common
+#       - apache2-utils
+#   notify:
+#     - Start iSCSI
+
+- name: Установка специфических пакетов для Longhorn и LVM на "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  ansible.builtin.apt:
+    update_cache: true
+    name:
+      - open-iscsi
+      - nfs-common
+      - apache2-utils
+      - python3-passlib
+    state: present
+  notify:
+    - Start iSCSI
+
+# =============================================================================
+#                                      Ubuntu 
+# =============================================================================
+
+# - name: Block для "Ubuntu"
+#   when:
+#     - ansible_facts.os_family == "Debian"
+#   become: true
+#   block:
+
+#     # - name: Установка пакетов для Longhorn и LVM (общие) на "Ubuntu"
+#     #   ansible.builtin.package:
+#     #     name:
+#     #       - python3-passlib
+
+#     - name: Установка пакетов для Longhorn и LVM (общие) на "Ubuntu"
+#       ansible.builtin.apt:
+#         update_cache: true
+#         name:
+#           - python3-passlib
+#         state: present
+
+# =============================================================================
+#                                     Altlinux 
+# =============================================================================
+
+- name: Установка специфических пакетов для Longhorn и LVM на "Altlinux"
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  community.general.apt_rpm:
+    update_cache: true
+    pkg:
+      - open-iscsi
+      - apache2-full
+      - nfs-utils
+      - python3-module-kubernetes-client
+      - python3-module-passlib
+      - python3-module-jsonpatch
+      - python3-module-pyaml
+    state: latest
+  notify:
+    - Start iSCSI

@@ -1,0 +1,95 @@
+---
+
+# =============================================================================
+#                            Установка python3-pip
+# =============================================================================
+
+- name: Создание папку "{{ kubeadm_temp_folder }}"
+  ansible.builtin.file:
+    path: "{{ kubeadm_temp_folder }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Установка python3-pip (не на Altlinux)
+  when:
+    - ansible_facts.os_family != "Altlinux"
+  ansible.builtin.package:
+    name:
+      - python3-pip
+    state: present
+
+- name: Установка python3-module-pip (на Altlinux)
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  community.general.apt_rpm:
+    update_cache: true
+    pkg:
+      - python3-module-pip
+    state: latest
+
+# =============================================================================
+#                              Отключение SWAP
+# =============================================================================
+
+- name: Проверка, что SWAP включен
+  changed_when: false
+  ignore_errors: true
+  ansible.builtin.shell: |
+    swapon
+  register: swap_present
+  args:
+    executable: /bin/bash
+
+- name: Если SWAP включен - отключить его
+  when: swap_present.stdout != ""
+  ansible.builtin.shell: |
+    set -o pipefail
+    swapoff -a
+  args:
+    executable: /bin/bash
+
+- name: Отключение SWAP в fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\s*swap\s*.*)$'
+    replace: '# \1'
+
+# =============================================================================
+#                              Отключение firewall
+# =============================================================================
+
+- name: Block для "RedHat"
+  when:
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+  become: true
+  block:
+
+    - name: Отключение firewalld на RedHat
+      when:
+        - ansible_facts.os_distribution == "RedHat"
+      ansible.builtin.systemd_service:
+        name: firewalld
+        state: stopped
+        enabled: false
+
+# =============================================================================
+#                              Отключение SELinux
+# =============================================================================
+
+- name: Block для "RedHat"
+  when:
+    - ansible_facts.os_family == "RedHat" or ansible_facts.os_family == "RED"
+  become: true
+  block:
+
+    - name: Проверка, что SELinux отключен
+      ansible.posix.selinux:
+        state: disabled
+      register: selinux_ret
+
+    - name: Отключение SELinux
+      ansible.posix.selinux:
+        state: disabled
+      when: selinux_ret.reboot_required

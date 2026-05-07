@@ -1,0 +1,53 @@
+---
+
+# =============================================================================
+#                              Загрузка модулей
+# =============================================================================
+
+- name: Загрузка модулей ядра Linux
+  community.general.modprobe:
+    name: "{{ item }}"
+  loop:
+    - overlay
+    - br_netfilter
+    - nf_conntrack
+
+- name: Добавить модули в автозагрузку
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    content: |-
+      overlay
+      br_netfilter
+      nf_conntrack
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Редактирование файла /etc/sysctl.d/k8s.conf
+  become: true
+  ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl.d/k8s.conf
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+  with_items:
+    - name: net.bridge.bridge-nf-call-iptables
+      value: 1
+    - name: net.bridge.bridge-nf-call-ip6tables
+      value: 1
+    - name: net.ipv4.ip_forward
+      value: 1
+    - name: net.netfilter.nf_conntrack_max
+      value: 262144
+    - name: fs.inotify.max_user_watches
+      value: 524288
+    - name: vm.max_map_count
+      value: 262144
+    - name: kernel.panic
+      value: 10
+    - name: kernel.panic_on_oops
+      value: 1
+  notify:
+    - Reboot server

@@ -1,0 +1,8 @@
+---
+
+temp_folder: "/tmp/helm"
+
+# Nexus Raw hosted repository URL
+nexus_raw_hosted_repository_url: "{{ nexus_http_method }}://{{ nexus_image_repository }}:{{ nexus_raw_hosted_repository_port }}/{{ nexus_raw_hosted_repository_name }}"
+
+helm_url: "{{ nexus_raw_hosted_repository_url }}/helm/helm-v{{ helm_version }}-linux-amd64.tar.gz"

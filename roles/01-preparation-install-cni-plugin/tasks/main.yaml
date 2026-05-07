@@ -1,0 +1,51 @@
+---
+
+# =============================================================================
+#                              Не на Altlinux
+# =============================================================================
+
+- name: Установка CNI Plugin (не на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family != "Altlinux"
+  block:
+
+    - name: Скачать CNI plugin
+      ansible.builtin.get_url:
+        url: "{{ cni_plugins_url }}"
+        dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Создание папки /opt/cni/bin
+      ansible.builtin.file:
+        path: /opt/cni/bin
+        state: directory
+        owner: root
+        group: root
+        mode: "0775"
+
+    - name: Распаковка CNI Plugin
+      become: true
+      ansible.builtin.unarchive:
+        src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+        dest: /opt/cni/bin
+        remote_src: true
+
+# =============================================================================
+#                                   Altlinux
+# =============================================================================
+
+- name: Установка CNI plugin (на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  block:
+
+    - name: Установка CNI plugin (на Altlinux)
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - "cni-plugins"
+        state: latest

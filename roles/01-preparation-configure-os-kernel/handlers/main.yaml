@@ -1,0 +1,6 @@
+---
+
+- name: Reboot server
+  become: true
+  throttle: 1
+  ansible.builtin.reboot:

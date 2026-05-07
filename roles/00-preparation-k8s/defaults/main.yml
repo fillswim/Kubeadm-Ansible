@@ -1,0 +1,13 @@
+---
+
+# nexus_raw_hosted_repository_port: "8081"
+# nexus_raw_hosted_repository_name: "repository/raw-hosted"
+# full_nexus_raw_hosted_repository_url: "{{ nexus_http_method }}://{{ nexus_image_repository }}:{{ nexus_raw_hosted_repository_port }}/{{ nexus_raw_hosted_repository_name }}"
+
+
+
+
+
+
+
+

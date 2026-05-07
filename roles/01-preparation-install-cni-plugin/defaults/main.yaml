@@ -1,0 +1,7 @@
+---
+
+# Nexus Raw hosted repository URL
+nexus_raw_hosted_repository_url: "{{ nexus_http_method }}://{{ nexus_image_repository }}:{{ nexus_raw_hosted_repository_port }}/{{ nexus_raw_hosted_repository_name }}"
+
+# "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+cni_plugins_url: "{{ nexus_raw_hosted_repository_url }}/containernetworking/plugins/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"

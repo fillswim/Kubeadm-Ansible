@@ -1,0 +1,121 @@
+---
+
+# =============================================================================
+#                                   Ubuntu
+# =============================================================================
+
+- name: Установка CRI-O (на Ubuntu)
+  become: true
+  when:
+    - ansible_facts.os_family == "Debian"
+  block:
+
+    # - name: Установка дополнительных пакетов для CRI-O на "Ubuntu"
+    #   ansible.builtin.package:
+    #     name:
+    #       - apt-transport-https
+    #       - ca-certificates
+    #       - curl
+    #       - gpg
+    #       - software-properties-common
+    #     state: present
+
+    # - name: Убедиться, что директория /etc/apt/keyrings существует
+    #   ansible.builtin.file:
+    #     path: /etc/apt/keyrings
+    #     state: directory
+    #     mode: '0755'
+
+    # - name: Проверка существования файла "/etc/apt/keyrings/cri-o-apt-keyring.gpg"
+    #   ansible.builtin.stat:
+    #     path: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+    #   register: cri_o_apt_keyring_gpg_exists
+
+    # - name: Удалить старый GPG ключ CRI-O "/etc/apt/keyrings/cri-o-apt-keyring.gpg"
+    #   when:
+    #     - cri_o_apt_keyring_gpg_exists.stat.exists
+    #   become: true
+    #   ansible.builtin.file:
+    #     path: "/etc/apt/keyrings/cri-o-apt-keyring.gpg"
+    #     state: absent
+
+    # - name: Скачать GPG ключ CRI-O
+    #   ansible.builtin.get_url:
+    #     # url: https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/Release.key
+    #     # url: https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/Release.key
+    #     url: https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/Release.key
+    #     dest: /tmp/cri-o-release.key
+    #     mode: '0644'
+
+    # - name: Преобразовать GPG ключ в бинарный формат для CRI-O
+    #   ansible.builtin.command:
+    #     cmd: gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg /tmp/cri-o-release.key
+    #   args:
+    #     creates: /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+    # - name: Добавить Kubernetes APT-репозиторий (как файл) для CRI-O
+    #   ansible.builtin.copy:
+    #     # dest: /etc/apt/sources.list.d/kubernetes.list
+    #     dest: /etc/apt/sources.list.d/cri-o.list
+    #     # content: "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+    #     content: "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+    #     mode: '0644'
+
+    # - name: Обновить кэш apt
+    #   ansible.builtin.apt:
+    #     update_cache: true
+
+    # - name: Установка cri-o для "Ubuntu"
+    #   register: install_packages_output
+    #   ansible.builtin.package:
+    #     name:
+    #       - cri-o
+    #     state: present
+    #   notify:
+    #     - Start crio
+
+    - name: Установка cri-o для "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - cri-o
+        state: present
+      notify:
+        - Start crio
+
+# =============================================================================
+#                                   Altlinux
+# =============================================================================
+
+- name: Установка CRI-O (на Altlinux)
+  become: true
+  when:
+    - ansible_facts.os_family == "Altlinux"
+  block:
+
+    - name: Установка CRI-O (на Altlinux)
+      community.general.apt_rpm:
+        update_cache: true
+        pkg:
+          - "kubernetes{{ kubernetes_major_version }}-crio"
+          - "cri-tools{{ kubernetes_major_version }}"
+        state: latest
+      notify:
+        - Start crio
+
+    - name: Убрать лишние репозитории из registries.conf
+      ansible.builtin.replace:
+        path: /etc/containers/registries.conf
+        regexp: '^unqualified-search-registries = \[.*\]$'
+        replace: 'unqualified-search-registries = ["registry.altlinux.org"]'
+
+    - name: Скопировать nexus.conf
+      become: true
+      ansible.builtin.template:
+        src: nexus.conf.j2
+        dest: /etc/containers/registries.conf.d/nexus.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart crio

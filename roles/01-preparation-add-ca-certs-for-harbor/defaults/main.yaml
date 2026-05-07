@@ -1,0 +1,3 @@
+---
+
+ca_certificate_redhat_path: "/etc/pki/ca-trust/source/anchors/"

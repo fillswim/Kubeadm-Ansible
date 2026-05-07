@@ -1,0 +1,12 @@
+---
+
+- name: Repository add apt
+  hosts: "all"
+
+  roles:
+    - role: 01-preparation-repository-add-apt
+      vars:
+        repository_name: nexus-lxc
+        key_url: "https://nexus-lxc.fillswim.local:8443/repository/gpg-keys/public-nexus-lxc.gpg.key"
+        repository_url_list: "https://nexus-lxc.fillswim.local:8443/repository/apt-hosted stable main"
+        

@@ -3,4 +3,4 @@
   hosts: k8s_masters
 
   roles:
-    - role: Install-K9s
+    - role: 01-preparation-install-k9s

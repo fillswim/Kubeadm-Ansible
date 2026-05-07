@@ -1,0 +1,60 @@
+---
+
+- name: Block для "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  become: true
+  block:
+
+    # - name: Установка дополнительных пакетов на "Ubuntu"
+    #   ansible.builtin.package:
+    #     name:
+    #       - apt-transport-https
+    #       - ca-certificates
+    #       - curl
+    #       - gpg
+    #     state: present
+
+    - name: Установка дополнительных пакетов на "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+        state: present
+
+    - name: Убедиться, что директория "{{ repository_keyrings_path }}" существует
+      ansible.builtin.file:
+        path: "{{ repository_keyrings_path }}"
+        state: directory
+        mode: "0755"
+
+    - name: Удалить старый GPG ключ "{{ repository_keyrings_path }}/{{ gpg_file_name }}"
+      become: true
+      ansible.builtin.file:
+        path: "{{ repository_keyrings_path }}/{{ gpg_file_name }}"
+        state: absent
+
+    - name: Скачать GPG ключ "{{ key_url }}"
+      ansible.builtin.get_url:
+        url: "{{ key_url }}"
+        dest: "{{ key_tmp_path }}/{{ key_file_name }}"
+        mode: "0644"
+
+    - name: Преобразовать GPG ключ в бинарный формат
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o {{ repository_keyrings_path }}/{{ gpg_file_name }} {{ key_tmp_path }}/{{ key_file_name }}
+      args:
+        creates: "{{ repository_keyrings_path }}/{{ gpg_file_name }}"
+
+    - name: Добавить Kubernetes APT-репозиторий (как файл)
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/{{ repository_file_name }}
+        content: "deb [signed-by={{ repository_keyrings_path }}/{{ gpg_file_name }}] {{ repository_url_list }}"
+        mode: '0644'
+
+    - name: Обновить кэш apt
+      ansible.builtin.apt:
+        update_cache: true
