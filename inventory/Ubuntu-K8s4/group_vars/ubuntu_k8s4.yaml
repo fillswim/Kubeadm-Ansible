@@ -7,11 +7,8 @@ ansible_ssh_private_key_file: ~/.ssh/id_ed25519
 ansible_python_interpreter: auto_silent
 
 # ==============================================================================
-#                                Install ContainerD
+#                                  Image Repository
 # ==============================================================================
-
-install_containerd: true
-containerd_version: "2.3.0"
 
 # Docker Proxy Registry Type
 docker_proxy_registry_type: "nexus"
@@ -30,8 +27,25 @@ image_repository_http_method: "https"
 # image_repository_http_method: "https"
 
 # ==============================================================================
+#                                Install ContainerD
+# ==============================================================================
+
+install_containerd: false
+# containerd_version: "2.3.0"
+
+# ==============================================================================
 #                                Install NerdCTL
 # ==============================================================================
 
-install_nerdctl: true
-nerdctl_version: "2.2.2"
+install_nerdctl: false
+# nerdctl_version: "2.2.2"
+
+# ==============================================================================
+#                                Install CRI-O
+# ==============================================================================
+
+# Kubernetes
+kubernetes_major_version: "1.35"
+kubernetes_minor_version: "1.35.3"
+
+install_crio: true

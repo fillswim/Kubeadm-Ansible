@@ -1,4 +1,4 @@
 ---
 
-nerdctl_version: "2.1.6"
-nerdctl_url: "https://github.com/containerd/nerdctl/releases/download/v{{ nerdctl_version }}/nerdctl-{{ nerdctl_version }}-linux-amd64.tar.gz"
+# https://nexus-lxc.fillswim.local:8443/repository/raw-hosted/nerdctl/v2.2.2/nerdctl-2.2.2-linux-amd64.tar.gz
+nerdctl_url: "{{ nexus_raw_hosted_repository_url }}/nerdctl/v{{ nerdctl_version }}/nerdctl-{{ nerdctl_version }}-linux-amd64.tar.gz"

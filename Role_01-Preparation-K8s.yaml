@@ -5,6 +5,10 @@
 - name: Prepare VM for K8s
   hosts: "all"
 
+  vars_files:
+    - group_vars/nexus.yaml
+    - group_vars/harbor.yaml
+
   roles:
     # # - role: 01-preparation-k8s # (old)
     # - role: 01-preparation-configure-os-common
@@ -30,23 +34,24 @@
     # # Установка NerdCTL
     # - role: 01-preparation-install-nerdctl
     #   when:
+    #     - install_containerd
     #     - install_nerdctl
 
-    # Установка ContainerD
-    - role: 01-preparation-install-containerd
-      when:
-        - install_containerd
-
-    # # Добавление APT репозитория CRI-O (Internet)
-    # - role: 01-preparation-repository-add-apt
-    #   vars:
-    #     repository_name: cri-o
-    #     key_url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
-    #     repository_url_list: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/ /"
-
-    # - role: 01-preparation-install-crio
+    # # Установка ContainerD
+    # - role: 01-preparation-install-containerd
     #   when:
-    #     - install_crio
+    #     - install_containerd
+
+    # Добавление APT репозитория CRI-O (Internet)
+    - role: 01-preparation-repository-add-apt
+      vars:
+        repository_name: cri-o
+        key_url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
+        repository_url_list: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/ /"
+
+    - role: 01-preparation-install-crio
+      when:
+        - install_crio
 
     # # Добавление CA-сертификатов для Harbor и Nexus (после установки Containerd или CRI-O)
     # - role: 01-preparation-add-ca-certs-for-harbor

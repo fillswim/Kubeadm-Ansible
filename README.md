@@ -83,8 +83,15 @@ ansible-playbook -i inventory/Nexus/nexus.yaml ping.yaml -b
 ansible-playbook -i inventory/Nexus/nexus.yaml Install-Nexus.yaml -b
 
 # ==============================================================================
-#                              Ubuntu K8s3
+#                           Ubuntu K8s3 (ContainerD)
 # ==============================================================================
 
 ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml ping.yaml -b
 ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Role_01-Preparation-K8s.yaml -b
+
+# ==============================================================================
+#                             Ubuntu K8s4 (CRI-O)
+# ==============================================================================
+
+ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml ping.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml Role_01-Preparation-K8s.yaml -b

@@ -1,0 +1,28 @@
+---
+
+# ==============================================================================
+#                                      Nexus
+# ==============================================================================
+
+# nexus-lxc.fillswim.local (HTTPS)
+nexus_repository_name: "nexus-lxc.fillswim.local"
+nexus_repository_http_method: "https"
+nexus_repository_http_port: "8443"
+
+# # nexus.fillswim.local (HTTP)
+# nexus_repository_name: "nexus.fillswim.local"
+# nexus_repository_http_method: "http"
+# nexus_repository_http_port: "8081"
+
+# Raw Hosted Repository
+nexus_repository_raw_hosted_repository_name: "repository/raw-hosted"
+# Docker Proxy Repository
+nexus_repository_docker_proxy_port:  "8084"
+# Docker Hosted Repository
+nexus_repository_docker_hosted_port: "8086"
+
+# =============================================================================
+#                          Nexus RAW Hosted Repository
+# =============================================================================
+
+nexus_raw_hosted_repository_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_http_port }}/{{ nexus_repository_raw_hosted_repository_name }}"

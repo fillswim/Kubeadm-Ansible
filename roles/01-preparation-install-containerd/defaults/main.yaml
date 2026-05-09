@@ -4,9 +4,6 @@
 #                          Nexus RAW Hosted Repository
 # =============================================================================
 
-# Nexus Raw hosted repository URL
-nexus_raw_hosted_repository_url: "{{ nexus_repository_http_method }}://{{ nexus_repository_name }}:{{ nexus_repository_http_port }}/{{ nexus_repository_raw_hosted_repository_name }}"
-
 # "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
 containerd_url: "{{ nexus_raw_hosted_repository_url }}/containerd/v{{ containerd_version }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
 

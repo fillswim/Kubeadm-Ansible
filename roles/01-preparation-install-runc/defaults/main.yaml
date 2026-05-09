@@ -1,7 +1,4 @@
 ---
 
-# Nexus Raw hosted repository URL
-nexus_raw_hosted_repository_url: "{{ nexus_http_method }}://{{ nexus_image_repository }}:{{ nexus_raw_hosted_repository_port }}/{{ nexus_raw_hosted_repository_name }}"
-
 # "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
 runc_url: "{{ nexus_raw_hosted_repository_url }}/runc/v{{ runc_version }}/runc.amd64"

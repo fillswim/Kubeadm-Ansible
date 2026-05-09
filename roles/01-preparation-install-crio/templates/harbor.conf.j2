@@ -1,0 +1,41 @@
+unqualified-search-registries = ["docker.io", "quay.io", "registry.k8s.io", "ghcr.io", "gcr.io", "k8s.gcr.io", "public.ecr.aws"]
+
+[[registry]]
+prefix   = "docker.io"
+location = "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-docker.io"
+blocked  = false
+{% if harbor_repository_http_method == "https" %}
+insecure = false
+{% else %}
+insecure = true
+{% endif %}
+
+[[registry]]
+prefix   = "quay.io"
+location = "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-quay.io"
+blocked  = false
+{% if harbor_repository_http_method == "https" %}
+insecure = false
+{% else %}
+insecure = true
+{% endif %}
+
+[[registry]]
+prefix   = "registry.k8s.io"
+location = "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-registry.k8s.io"
+blocked  = false
+{% if harbor_repository_http_method == "https" %}
+insecure = false
+{% else %}
+insecure = true
+{% endif %}
+
+[[registry]]
+prefix   = "public.ecr.aws"
+location = "{{ harbor_repository_docker_proxy_url }}/v2/docker-proxy-public.ecr.aws"
+blocked  = false
+{% if harbor_repository_http_method == "https" %}
+insecure = false
+{% else %}
+insecure = true
+{% endif %}
