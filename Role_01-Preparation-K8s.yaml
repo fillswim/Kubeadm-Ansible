@@ -28,19 +28,19 @@
     # #     key_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
     # #     repository_url_list: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_version }}/deb/ /"
 
-    # # Установка пакетов K8s
-    # - role: 01-preparation-install-packages-k8s
+    # Установка пакетов K8s
+    - role: 01-preparation-install-packages-k8s
 
-    # # Установка NerdCTL
-    # - role: 01-preparation-install-nerdctl
-    #   when:
-    #     - install_containerd
-    #     - install_nerdctl
+    # Установка NerdCTL
+    - role: 01-preparation-install-nerdctl
+      when:
+        - install_containerd
+        - install_nerdctl
 
-    # # Установка ContainerD
-    # - role: 01-preparation-install-containerd
-    #   when:
-    #     - install_containerd
+    # Установка ContainerD
+    - role: 01-preparation-install-containerd
+      when:
+        - install_containerd
 
     # Добавление APT репозитория CRI-O (Internet)
     - role: 01-preparation-repository-add-apt

@@ -32,6 +32,19 @@
       notify:
         - Restart crio
 
+    - name: Скопировать harbor.conf
+      become: true
+      when:
+        - docker_proxy_registry_type == "harbor"
+      ansible.builtin.template:
+        src: harbor.conf.j2
+        dest: /etc/containers/registries.conf.d/crio.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart crio
+
 # =============================================================================
 #                             Установка на Altlinux
 # =============================================================================
@@ -60,9 +73,24 @@
 
     - name: Скопировать nexus.conf
       become: true
+      when:
+        - docker_proxy_registry_type == "nexus"
       ansible.builtin.template:
         src: nexus.conf.j2
         dest: /etc/containers/registries.conf.d/nexus.conf
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Restart crio
+
+    - name: Скопировать harbor.conf
+      become: true
+      when:
+        - docker_proxy_registry_type == "harbor"
+      ansible.builtin.template:
+        src: harbor.conf.j2
+        dest: /etc/containers/registries.conf.d/harbor.conf
         owner: root
         group: root
         mode: "0644"
