@@ -10,6 +10,14 @@
     - ansible_facts.os_family == "Debian"
   block:
 
+    - name: Установка вспомогательных пакетов для CRI-O
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - software-properties-common
+          - curl
+        state: present
+
     - name: Установка cri-o для "Ubuntu"
       ansible.builtin.apt:
         update_cache: true

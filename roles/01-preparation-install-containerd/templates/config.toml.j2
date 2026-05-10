@@ -170,7 +170,7 @@ enabled_plugins = ["cri"]
 
       [plugins."io.containerd.grpc.v1.cri".registry.configs]
         [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ nexus_repository_name }}".tls]
-{% if image_repository_http_method == "https" %}
+{% if nexus_repository_http_method == "https" %}
           ca_file = "{{ containerd_certs_dir }}/{{ nexus_repository_name }}/{{ nexus_repository_name }}.crt"
 {% else %}
           insecure_skip_verify = true
@@ -237,7 +237,7 @@ enabled_plugins = ["cri"]
 
       [plugins."io.containerd.grpc.v1.cri".registry.configs]
         [plugins."io.containerd.grpc.v1.cri".registry.configs."{{ harbor_repository_name }}".tls]
-{% if image_repository_http_method == "https" %}
+{% if harbor_repository_http_method == "https" %}
           ca_file = "{{ containerd_certs_dir }}/{{ harbor_repository_name }}/{{ harbor_repository_name }}.crt"
 {% else %}
           insecure_skip_verify = true

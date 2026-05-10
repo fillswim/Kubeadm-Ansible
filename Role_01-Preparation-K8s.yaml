@@ -11,15 +11,15 @@
 
   roles:
     # # - role: 01-preparation-k8s # (old)
-    # - role: 01-preparation-configure-os-common
-    # - role: 01-preparation-configure-os-kernel
+    - role: 01-preparation-configure-os-common
+    - role: 01-preparation-configure-os-kernel
 
-    # # Добавление APT-hosted репозитория Nexus (для kubeadm, kubelet и kubectl)
-    # - role: 01-preparation-repository-add-apt
-    #   vars:
-    #     repository_name: nexus-lxc
-    #     key_url: "https://nexus-lxc.fillswim.local:8443/repository/gpg-keys/public-nexus-lxc.gpg.key"
-    #     repository_url_list: "https://nexus-lxc.fillswim.local:8443/repository/apt-hosted stable main"
+    # Добавление APT-hosted репозитория Nexus (для kubeadm, kubelet и kubectl)
+    - role: 01-preparation-repository-add-apt
+      vars:
+        repository_name: nexus-lxc
+        key_url: "https://nexus-lxc.fillswim.local:8443/repository/gpg-keys/public-nexus-lxc.gpg.key"
+        repository_url_list: "https://nexus-lxc.fillswim.local:8443/repository/apt-hosted stable main"
 
     # # # Добавление APT репозитория Kubernetes (Internet)
     # # - role: 01-preparation-repository-add-apt
@@ -31,19 +31,31 @@
     # Установка пакетов K8s
     - role: 01-preparation-install-packages-k8s
 
+    # Установка ContainerD
+    - role: 01-preparation-install-containerd
+      when:
+        - install_containerd
+
     # Установка NerdCTL
     - role: 01-preparation-install-nerdctl
       when:
         - install_containerd
         - install_nerdctl
 
-    # Установка ContainerD
-    - role: 01-preparation-install-containerd
+    # Установка CNI Plugin
+    - role: 01-preparation-install-cni-plugin
       when:
-        - install_containerd
+        - install_cni_plugins
+
+    # Установка Runc
+    - role: 01-preparation-install-runc
+      when:
+        - install_runc
 
     # Добавление APT репозитория CRI-O (Internet)
     - role: 01-preparation-repository-add-apt
+      when:
+        - install_crio
       vars:
         repository_name: cri-o
         key_url: "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v{{ kubernetes_major_version }}/deb/Release.key"
@@ -53,29 +65,19 @@
       when:
         - install_crio
 
-    # # Добавление CA-сертификатов для Harbor и Nexus (после установки Containerd или CRI-O)
-    # - role: 01-preparation-add-ca-certs-for-harbor
-    # - role: 01-preparation-add-ca-certs-for-nexus
+    # Установка пакетов для Longhorn
+    - role: 01-preparation-install-packages-longhorn
+      when:
+        - install_packages_for_longhorn
 
-    # # Установка CNI Plugin
-    # - role: 01-preparation-install-cni-plugin
-    #   when:
-    #     - install_cni_plugins
+    # Установка Helm
+    - role: 01-preparation-install-helm
+      when:
+        - inventory_hostname in groups['k8s_masters']
+        - install_helm
 
-    # # Установка Runc
-    # - role: 01-preparation-install-runc
-    #   when:
-    #     - install_runc
-
-    # # Установка пакетов для Longhorn
-    # - role: 01-preparation-install-packages-longhorn
-
-    # # Установка Helm
-    # - role: 01-preparation-install-helm
-    #   when:
-    #     - install_helm
-
-    # # Установка K9s
-    # - role: 01-preparation-install-k9s
-    #   when:
-    #     - install_k9s
+    # Установка K9s
+    - role: 01-preparation-install-k9s
+      when:
+        - inventory_hostname in groups['k8s_masters']
+        - install_k9s

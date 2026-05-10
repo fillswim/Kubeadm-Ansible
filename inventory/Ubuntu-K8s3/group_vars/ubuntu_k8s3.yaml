@@ -7,27 +7,19 @@ ansible_ssh_private_key_file: ~/.ssh/id_ed25519
 ansible_python_interpreter: auto_silent
 
 # ==============================================================================
+#                                  Image Repository
+# ==============================================================================
+
+# # Docker Proxy Registry Type
+docker_proxy_registry_type: "nexus"
+# docker_proxy_registry_type: "harbor"
+
+# ==============================================================================
 #                                Install ContainerD
 # ==============================================================================
 
 install_containerd: true
 containerd_version: "2.3.0"
-
-# Docker Proxy Registry Type
-docker_proxy_registry_type: "nexus"
-# docker_proxy_registry_type: "harbor"
-
-# nexus-lxc.fillswim.local (HTTPS)
-image_repository_name: "nexus-lxc.fillswim.local"
-image_repository_http_method: "https"
-
-# # nexus.fillswim.local (HTTP)
-# image_repository_name: "nexus.fillswim.local"
-# image_repository_http_method: "http"
-
-# # harbor.fillswim.local (HTTPS)
-# image_repository_name: "harbor.fillswim.local"
-# image_repository_http_method: "https"
 
 # ==============================================================================
 #                                Install NerdCTL
@@ -35,3 +27,47 @@ image_repository_http_method: "https"
 
 install_nerdctl: true
 nerdctl_version: "2.2.2"
+
+# ==============================================================================
+#                                Install CRI-O
+# ==============================================================================
+
+install_crio: false
+
+# # Kubernetes Version
+# kubernetes_major_version: "1.35"
+# kubernetes_minor_version: "1.35.3"
+
+# ==============================================================================
+#                                  Install Runc
+# ==============================================================================
+
+install_runc: true
+# runc_version: "1.4.2"
+
+# ==============================================================================
+#                               Install CNI Plugins
+# ==============================================================================
+
+install_cni_plugins: true
+# cni_plugins_version: "1.9.1"
+
+# ==============================================================================
+#                                  Install Helm
+# ==============================================================================
+
+install_helm: true
+helm_version: "4.1.1"
+
+# ==============================================================================
+#                                  Install K9s
+# ==============================================================================
+
+install_k9s: true
+k9s_version: "0.50.18"
+
+# ==============================================================================
+#                          Install Packages for Longhorn
+# ==============================================================================
+
+install_packages_for_longhorn: true

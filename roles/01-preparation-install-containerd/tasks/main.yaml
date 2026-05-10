@@ -1,17 +1,38 @@
 ---
 
+
 # =============================================================================
-#                        Установка ContainerD (не на Altlinux)
+# Установка ContainerD на Ubuntu (нужно сгенерировать конфиги для '/etc/containerd/conf.d/*.toml')
+# =============================================================================
+
+# - name: Block для "Ubuntu"
+#   when:
+#     - ansible_facts.os_family == "Debian"
+#   become: true
+#   block:
+
+#     - name: Установка containerd для "Ubuntu"
+#       ansible.builtin.apt:
+#         update_cache: true
+#         name:
+#           - containerd
+#         state: present
+#       notify:
+#         - Start containerd
+
+# =============================================================================
+#                          Установка из бинарников
 # =============================================================================
 
 - name: Установка containerd (не на Altlinux)
   become: true
   when:
+    # - ansible_facts.os_family != "Debian"
     - ansible_facts.os_family != "Altlinux"
   block:
 
     # ======================================================================
-    #                           Containerd Install
+    #                    Скачать и распаковать ContainerD
     # ======================================================================
 
     - name: Загрузить ContainerD "{{ containerd_url }}"
@@ -23,7 +44,7 @@
         mode: "0644"
       register: containerd_download_result
 
-    - name: Распаковать ContainerD "{{ kubeadm_temp_folder }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
+    - name: Распаковать архив с ContainerD
       become: true
       ansible.builtin.unarchive:
         src: "{{ kubeadm_temp_folder }}/containerd-{{ containerd_version }}-linux-amd64.tar.gz"
@@ -31,7 +52,29 @@
         remote_src: true
 
     # ======================================================================
-    #                         Containerd config.toml
+    #                           Containerd Service
+    # ======================================================================
+
+    - name: Создание папку /usr/local/lib/systemd/system
+      ansible.builtin.file:
+        path: /usr/local/lib/systemd/system
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Скопировать containerd.service
+      ansible.builtin.get_url:
+        url: "{{ containerd_service_url }}"
+        dest: /usr/local/lib/systemd/system/containerd.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Start containerd
+
+    # ======================================================================
+    #                        Скопировать config.toml
     # ======================================================================
 
     - name: Создание папки /etc/containerd
@@ -64,28 +107,6 @@
       notify:
         - Restart containerd
 
-    # ======================================================================
-    #                           Containerd Service
-    # ======================================================================
-
-    - name: Создание папку /usr/local/lib/systemd/system
-      ansible.builtin.file:
-        path: /usr/local/lib/systemd/system
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Скопировать containerd.service
-      ansible.builtin.get_url:
-        url: "{{ containerd_service_url }}"
-        dest: /usr/local/lib/systemd/system/containerd.service
-        owner: root
-        group: root
-        mode: "0644"
-      notify:
-        - Start containerd
-
     - name: Добавить /usr/local/bin в .bashrc
       become: true
       ansible.builtin.lineinfile:
@@ -95,7 +116,7 @@
         - "export PATH=$PATH:/usr/local/bin"
 
 # ======================================================================
-#                    Установка ContainerD (на Altlinux)
+#                    Установка ContainerD на Altlinux
 # ======================================================================
 
 - name: Установка containerd (на Altlinux)
@@ -120,25 +141,26 @@
 
 - name: Блок для добавления CA сертификатов для ContainerD, если репозиторий HTTPS
   become: true
-  when:
-    - image_repository_http_method == "https"
   block:
 
-    - name: Создание папки для репозиториев "{{ containerd_certs_dir }}"
+    - name: Создание папки для репозиториев
       ansible.builtin.file:
-        path: "{{ containerd_certs_dir }}/{{ image_repository_name }}"
+        path: "{{ containerd_certs_dir }}/{{ item | basename | regex_replace('.crt$', '') }}"
         state: directory
         owner: root
         group: root
         mode: '0755'
+      with_fileglob:
+        - "files/.certs/*.crt"
 
-    - name: Скопировать сертификаты CA в "{{ containerd_certs_dir }}"
-      become: true
+    - name: Скопировать сертификаты CA
       ansible.builtin.copy:
-        src: ".certs/{{ image_repository_name }}.crt"
-        dest: "{{ containerd_certs_dir }}/{{ image_repository_name }}/{{ image_repository_name }}.crt"
+        src: "{{ item }}"
+        dest: "{{ containerd_certs_dir }}/{{ item | basename | regex_replace('.crt$', '') }}/{{ item | basename }}"
         owner: root
         group: root
-        mode: "0644"
+        mode: '0644'
+      with_fileglob:
+        - "files/.certs/*.crt"
       notify:
         - Restart containerd

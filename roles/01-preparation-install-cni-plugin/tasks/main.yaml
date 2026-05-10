@@ -1,19 +1,37 @@
 ---
 
 # =============================================================================
-#                              Не на Altlinux
+#                        Установка CNI Plugin на Ubuntu
+# =============================================================================
+
+- name: Block для "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  become: true
+  block:
+
+    - name: Установка CNI Plugin для "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - containernetworking-plugins
+        state: present
+
+# =============================================================================
+#                       Установка CNI Plugin из бинарников
 # =============================================================================
 
 - name: Установка CNI Plugin (не на Altlinux)
   become: true
   when:
+    - ansible_facts.os_family != "Debian"
     - ansible_facts.os_family != "Altlinux"
   block:
 
     - name: Скачать CNI plugin
       ansible.builtin.get_url:
         url: "{{ cni_plugins_url }}"
-        dest: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+        dest: "{{ kubeadm_temp_folder }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
         owner: root
         group: root
         mode: "0644"
@@ -29,12 +47,12 @@
     - name: Распаковка CNI Plugin
       become: true
       ansible.builtin.unarchive:
-        src: /root/download/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz
+        src: "{{ kubeadm_temp_folder }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
         dest: /opt/cni/bin
         remote_src: true
 
 # =============================================================================
-#                                   Altlinux
+#                       Установка CNI Plugin на Altlinux
 # =============================================================================
 
 - name: Установка CNI plugin (на Altlinux)

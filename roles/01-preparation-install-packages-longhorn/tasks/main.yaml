@@ -12,7 +12,7 @@
       - xfsprogs
 
 # =============================================================================
-#                                      RedHat 
+#                                      RedHat
 # =============================================================================
 
 - name: Block для "RedHat"
@@ -45,19 +45,8 @@
           - jsonpatch
 
 # =============================================================================
-#                                      Ubuntu 
+#                                      Ubuntu
 # =============================================================================
-
-# - name: Установка специфических пакетов для Longhorn и LVM на "Ubuntu"
-#   when:
-#     - ansible_facts.os_family == "Debian"
-#   ansible.builtin.package:
-#     name:
-#       - open-iscsi
-#       - nfs-common
-#       - apache2-utils
-#   notify:
-#     - Start iSCSI
 
 - name: Установка специфических пакетов для Longhorn и LVM на "Ubuntu"
   when:
@@ -74,29 +63,7 @@
     - Start iSCSI
 
 # =============================================================================
-#                                      Ubuntu 
-# =============================================================================
-
-# - name: Block для "Ubuntu"
-#   when:
-#     - ansible_facts.os_family == "Debian"
-#   become: true
-#   block:
-
-#     # - name: Установка пакетов для Longhorn и LVM (общие) на "Ubuntu"
-#     #   ansible.builtin.package:
-#     #     name:
-#     #       - python3-passlib
-
-#     - name: Установка пакетов для Longhorn и LVM (общие) на "Ubuntu"
-#       ansible.builtin.apt:
-#         update_cache: true
-#         name:
-#           - python3-passlib
-#         state: present
-
-# =============================================================================
-#                                     Altlinux 
+#                                     Altlinux
 # =============================================================================
 
 - name: Установка специфических пакетов для Longhorn и LVM на "Altlinux"

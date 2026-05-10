@@ -1,19 +1,37 @@
 ---
 
 # =============================================================================
-#                              Не на Altlinux
+#                            Установка Runc на Ubuntu
 # =============================================================================
 
-- name: Установка Runc (не на Altlinux)
+- name: Block для "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  become: true
+  block:
+
+    - name: Установка Runc для "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - runc
+        state: present
+
+# =============================================================================
+#                         Установка Runc из бинарников
+# =============================================================================
+
+- name: Установка Runc из бинарников
   become: true
   when:
+    - ansible_facts.os_family != "Debian"
     - ansible_facts.os_family != "Altlinux"
   block:
 
     - name: Загрузить Runc
       ansible.builtin.get_url:
         url: "{{ runc_url }}"
-        dest: /root/download/runc.amd64
+        dest: "{{ kubeadm_temp_folder }}/runc.amd64"
         owner: root
         group: root
         mode: "0644"
@@ -21,7 +39,7 @@
     - name: Установить Runc
       become: true
       ansible.builtin.copy:
-        src: /root/download/runc.amd64
+        src: "{{ kubeadm_temp_folder }}/runc.amd64"
         dest: /usr/local/sbin/runc
         remote_src: true
         owner: root
@@ -32,7 +50,7 @@
 #                                   Altlinux
 # =============================================================================
 
-- name: Установка Runc (на Altlinux)
+- name: Установка Runc на Altlinux
   become: true
   when:
     - ansible_facts.os_family == "Altlinux"

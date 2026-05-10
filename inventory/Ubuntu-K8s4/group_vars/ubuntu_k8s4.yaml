@@ -10,21 +10,9 @@ ansible_python_interpreter: auto_silent
 #                                  Image Repository
 # ==============================================================================
 
-# Docker Proxy Registry Type
+# # Docker Proxy Registry Type
 docker_proxy_registry_type: "nexus"
 # docker_proxy_registry_type: "harbor"
-
-# nexus-lxc.fillswim.local (HTTPS)
-image_repository_name: "nexus-lxc.fillswim.local"
-image_repository_http_method: "https"
-
-# # nexus.fillswim.local (HTTP)
-# image_repository_name: "nexus.fillswim.local"
-# image_repository_http_method: "http"
-
-# # harbor.fillswim.local (HTTPS)
-# image_repository_name: "harbor.fillswim.local"
-# image_repository_http_method: "https"
 
 # ==============================================================================
 #                                Install ContainerD
@@ -44,8 +32,42 @@ install_nerdctl: false
 #                                Install CRI-O
 # ==============================================================================
 
-# Kubernetes
+install_crio: true
+
+# # Kubernetes Version
 kubernetes_major_version: "1.35"
 kubernetes_minor_version: "1.35.3"
 
-install_crio: true
+# ==============================================================================
+#                                  Install Runc
+# ==============================================================================
+
+install_runc: false
+# runc_version: "1.4.2"
+
+# ==============================================================================
+#                               Install CNI Plugins
+# ==============================================================================
+
+install_cni_plugins: false
+# cni_plugins_version: "1.9.1"
+
+# ==============================================================================
+#                                  Install Helm
+# ==============================================================================
+
+install_helm: true
+helm_version: "4.1.1"
+
+# ==============================================================================
+#                                  Install K9s
+# ==============================================================================
+
+install_k9s: true
+k9s_version: "0.50.18"
+
+# ==============================================================================
+#                          Install Packages for Longhorn
+# ==============================================================================
+
+install_packages_for_longhorn: true
