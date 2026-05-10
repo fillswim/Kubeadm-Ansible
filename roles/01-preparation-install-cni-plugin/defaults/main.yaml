@@ -1,4 +1,5 @@
 ---
 
 # "https://github.com/containernetworking/plugins/releases/download/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
-cni_plugins_url: "{{ nexus_raw_hosted_repository_url }}/containernetworking/plugins/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+file_path: "containernetworking/plugins/v{{ cni_plugins_version }}/cni-plugins-linux-amd64-v{{ cni_plugins_version }}.tgz"
+cni_plugins_url: "{{ nexus_raw_hosted_repository_url }}/{{ file_path }}"

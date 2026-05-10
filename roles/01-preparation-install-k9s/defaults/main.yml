@@ -5,4 +5,5 @@ temp_folder: "/tmp/k9s"
 # # url: "https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
 # k9s_link: "http://{{ nexus_image_repository }}:8081/repository/raw-hosted/k9s/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
 
-k9s_url: "{{ nexus_raw_hosted_repository_url }}/k9s/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
+file_path: "k9s/v{{ k9s_version }}/k9s_Linux_amd64.tar.gz"
+k9s_url: "{{ nexus_raw_hosted_repository_url }}/{{ file_path }}"

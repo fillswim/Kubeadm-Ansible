@@ -6,15 +6,6 @@
   become: true
   block:
 
-    # - name: Установка дополнительных пакетов на "Ubuntu"
-    #   ansible.builtin.package:
-    #     name:
-    #       - apt-transport-https
-    #       - ca-certificates
-    #       - curl
-    #       - gpg
-    #     state: present
-
     - name: Установка дополнительных пакетов на "Ubuntu"
       ansible.builtin.apt:
         update_cache: true
@@ -25,13 +16,13 @@
           - gpg
         state: present
 
-    - name: Убедиться, что директория "{{ repository_keyrings_path }}" существует
+    - name: Убедиться, что директория существует "{{ repository_keyrings_path }}"
       ansible.builtin.file:
         path: "{{ repository_keyrings_path }}"
         state: directory
         mode: "0755"
 
-    - name: Удалить старый GPG ключ "{{ repository_keyrings_path }}/{{ gpg_file_name }}"
+    - name: Удалить старый GPG ключ
       become: true
       ansible.builtin.file:
         path: "{{ repository_keyrings_path }}/{{ gpg_file_name }}"

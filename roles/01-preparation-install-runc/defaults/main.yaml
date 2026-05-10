@@ -1,4 +1,5 @@
 ---
 
 # "https://github.com/opencontainers/runc/releases/download/v{{ runc_version }}/runc.amd64"
-runc_url: "{{ nexus_raw_hosted_repository_url }}/runc/v{{ runc_version }}/runc.amd64"
+file_path: "runc/v{{ runc_version }}/runc.amd64"
+runc_url: "{{ nexus_raw_hosted_repository_url }}/{{ file_path }}"
