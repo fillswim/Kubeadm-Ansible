@@ -1,0 +1,10 @@
+server = "{{ item.server_url }}"
+
+[host."{{ nexus_repository_docker_proxy_url }}"]
+  capabilities = {{ item.capabilities | to_json }}
+{% if nexus_repository_http_method == "https" %}
+  ca = "{{ containerd_certs_dir }}/{{ nexus_repository_name }}/{{ nexus_repository_name }}.crt"
+  skip_verify = false
+{% else %}
+  insecure_skip_verify = true
+{% endif %}

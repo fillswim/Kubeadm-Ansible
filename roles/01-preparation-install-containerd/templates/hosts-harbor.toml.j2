@@ -1,0 +1,10 @@
+server = "{{ item.server_url }}"
+
+[host."{{ harbor_repository_docker_proxy_url }}/{{ item.repository_path }}"]
+  capabilities = {{ item.capabilities | to_json }}
+{% if harbor_repository_http_method == "https" %}
+  ca = "{{ containerd_certs_dir }}/{{ harbor_repository_name }}/{{ harbor_repository_name }}.crt"
+  skip_verify = false
+{% else %}
+  insecure_skip_verify = true
+{% endif %}

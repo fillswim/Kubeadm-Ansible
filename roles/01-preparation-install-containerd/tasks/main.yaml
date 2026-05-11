@@ -2,32 +2,32 @@
 
 
 # =============================================================================
-# Установка ContainerD на Ubuntu (нужно сгенерировать конфиги для '/etc/containerd/conf.d/*.toml')
+#             Установка ContainerD на Ubuntu (из репозиториев)
 # =============================================================================
 
-# - name: Block для "Ubuntu"
-#   when:
-#     - ansible_facts.os_family == "Debian"
-#   become: true
-#   block:
+- name: Block для "Ubuntu"
+  when:
+    - ansible_facts.os_family == "Debian"
+  become: true
+  block:
 
-#     - name: Установка containerd для "Ubuntu"
-#       ansible.builtin.apt:
-#         update_cache: true
-#         name:
-#           - containerd
-#         state: present
-#       notify:
-#         - Start containerd
+    - name: Установка containerd для "Ubuntu"
+      ansible.builtin.apt:
+        update_cache: true
+        name:
+          - containerd
+        state: present
+      notify:
+        - Start containerd
 
 # =============================================================================
 #                          Установка из бинарников
 # =============================================================================
 
-- name: Установка containerd (не на Altlinux)
+- name: Установка containerd (не на Altlinux и не на Ubuntu)
   become: true
   when:
-    # - ansible_facts.os_family != "Debian"
+    - ansible_facts.os_family != "Debian"
     - ansible_facts.os_family != "Altlinux"
   block:
 
@@ -74,38 +74,8 @@
         - Start containerd
 
     # ======================================================================
-    #                        Скопировать config.toml
+    #                        Изменить PATH в .bashrc
     # ======================================================================
-
-    - name: Создание папки /etc/containerd
-      ansible.builtin.file:
-        path: /etc/containerd
-        state: directory
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Скопировать config.toml
-      become: true
-      ansible.builtin.template:
-        src: config.toml.j2
-        dest: /etc/containerd/config.toml
-        owner: root
-        group: root
-        mode: "0644"
-      notify:
-        - Restart containerd
-
-    - name: Скопировать crictl.yaml
-      become: true
-      ansible.builtin.template:
-        src: crictl.yaml.j2
-        dest: /etc/crictl.yaml
-        owner: root
-        group: root
-        mode: "0644"
-      notify:
-        - Restart containerd
 
     - name: Добавить /usr/local/bin в .bashrc
       become: true
@@ -134,6 +104,73 @@
         state: latest
       notify:
         - Start containerd
+
+# ======================================================================
+#                        Скопировать config.toml
+# ======================================================================
+
+- name: Создание папки /etc/containerd
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Скопировать config.toml
+  become: true
+  ansible.builtin.template:
+    src: config-{{ containerd_config_version }}.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart containerd
+
+- name: Блок для v3 конфигурации ContainerD
+  become: true
+  when:
+    - containerd_config_version == "v3"
+  block:
+
+    - name: Создание папок для репозиториев
+      ansible.builtin.file:
+        path: "/etc/containerd/certs.d/{{ item.name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+      loop: "{{ registries }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Копирование hosts.toml для каждого репозитория
+      ansible.builtin.template:
+        src: hosts-{{ docker_proxy_registry_type }}.toml.j2
+        dest: "/etc/containerd/certs.d/{{ item.name }}/hosts.toml"
+        owner: root
+        group: root
+        mode: '0644'
+      loop: "{{ registries }}"
+      loop_control:
+        label: "{{ item.name }}"
+      notify: Restart containerd
+
+# ======================================================================
+#                        Скопировать crictl.yaml
+# ======================================================================
+
+- name: Скопировать crictl.yaml
+  become: true
+  ansible.builtin.template:
+    src: crictl.yaml.j2
+    dest: /etc/crictl.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart containerd
 
 # =============================================================================
 #                  Добавление CA сертификатов для ContainerD

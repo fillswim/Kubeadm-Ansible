@@ -19,7 +19,9 @@ docker_proxy_registry_type: "nexus"
 # ==============================================================================
 
 install_containerd: true
-containerd_version: "2.3.0"
+# containerd_version: "2.3.0"
+# containerd_config_version: "v2"
+containerd_config_version: "v3"
 
 # ==============================================================================
 #                                Install NerdCTL

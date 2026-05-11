@@ -7,12 +7,12 @@ ubuntu_k8s3:
 # Control nodes
 k8s_masters:
   hosts:
-    ubuntu-k8s3-master-1.lab.local:
-      ansible_host: 192.168.2.101
+    # ubuntu-k8s3-master-1.lab.local:
+    #   ansible_host: 192.168.2.101
     # ubuntu-k8s3-master-2.lab.local:
     #   ansible_host: 192.168.2.102
-    # ubuntu-k8s3-master-3.lab.local:
-    #   ansible_host: 192.168.2.103
+    ubuntu-k8s3-master-3.lab.local:
+      ansible_host: 192.168.2.103
 
 # Worker nodes
 k8s_workers:
