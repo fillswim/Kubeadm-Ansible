@@ -1,0 +1,115 @@
+# ===================================================================
+#                           InitConfiguration
+# ===================================================================
+kind: InitConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+localAPIEndpoint:
+  advertiseAddress: {{ ansible_facts.default_ipv4.address }}
+  bindPort: {{ node_control_plane_port }}
+nodeRegistration:
+  name: {{ inventory_hostname }}                              # Имя первой control ноды
+
+{% if install_containerd %}
+  criSocket: {{ containerd_cri_socket }}
+{% endif %}
+{% if install_crio %}
+  criSocket: {{ crio_cri_socket }}
+{% endif %}
+
+  imagePullPolicy: IfNotPresent
+  taints: null
+
+# ===================================================================
+#                           ClusterConfiguration
+# ===================================================================
+---
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+certificatesDir: /etc/kubernetes/pki
+clusterName: {{ cluster_name }}                               # Доменное имя
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: {{ kubeadm_image_repository_altlinux }}
+apiServer:
+  timeoutForControlPlane: 4m0s
+kubernetesVersion: {{ kubernetes_minor_version }}
+controlPlaneEndpoint: {{ cluster_control_plane_vip }}:{{ cluster_control_plane_port }}
+networking:
+  dnsDomain: {{ cluster_name }}
+  podSubnet: {{ cluster_pod_network }}
+  serviceSubnet: {{ cluster_service_network }}
+scheduler: {}
+
+# ===================================================================
+#                           KubeProxyConfiguration
+# ===================================================================
+{% if enable_kube_proxy %}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+bindAddress: 0.0.0.0
+clusterCIDR: {{ cluster_pod_network }}          # Сеть для подов
+ipvs:
+  strictARP: True
+mode: ipvs
+{% endif %}
+# ===================================================================
+#                           KubeletConfiguration
+# ===================================================================
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 0s
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s
+cgroupDriver: systemd
+clusterDomain: {{ cluster_name }}
+clusterDNS:
+- {{ cluster_dns_server_ip }}
+containerRuntimeEndpoint: ""
+cpuManagerReconcilePeriod: 0s
+evictionPressureTransitionPeriod: 0s
+fileCheckFrequency: 0s
+healthzBindAddress: 127.0.0.1
+healthzPort: 10248
+httpCheckFrequency: 0s
+imageMinimumGCAge: 0s
+logging:
+  flushFrequency: 0
+  options:
+    json:
+      infoBufferSize: "0"
+  verbosity: 0
+memorySwap: {}
+nodeStatusReportFrequency: 0s
+nodeStatusUpdateFrequency: 0s
+resolvConf: /run/systemd/resolve/resolv.conf
+rotateCertificates: true
+runtimeRequestTimeout: 0s
+shutdownGracePeriod: 0s
+shutdownGracePeriodCriticalPods: 0s
+staticPodPath: /etc/kubernetes/manifests
+streamingConnectionIdleTimeout: 0s
+syncFrequency: 0s
+volumeStatsAggPeriod: 0s

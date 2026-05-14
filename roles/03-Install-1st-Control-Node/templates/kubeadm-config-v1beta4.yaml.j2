@@ -1,0 +1,107 @@
+# ==========================================================
+#                    InitConfiguration
+# ==========================================================
+
+kind: InitConfiguration
+apiVersion: kubeadm.k8s.io/v1beta4
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+nodeRegistration:
+  name: {{ ansible_facts.fqdn }}                            # Имя первой control ноды
+
+{% if install_containerd %}
+  criSocket: {{ containerd_cri_socket }}
+{% endif %}
+{% if install_crio %}
+  criSocket: {{ crio_cri_socket }}
+{% endif %}
+
+  imagePullPolicy: IfNotPresent
+  imagePullSerial: true
+  taints: null
+localAPIEndpoint:
+  advertiseAddress: {{ ansible_facts.default_ipv4.address }}
+  bindPort: {{ node_control_plane_port }}
+timeouts:
+  controlPlaneComponentHealthCheck: 4m0s
+  discovery: 5m0s
+  etcdAPICall: 2m0s
+  kubeletHealthCheck: 4m0s
+  kubernetesAPICall: 1m0s
+  tlsBootstrap: 5m0s
+  upgradeManifests: 5m0s
+
+# ==========================================================
+#                    ClusterConfiguration
+# ==========================================================
+---
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta4
+certificatesDir: /etc/kubernetes/pki                                                        # Где будут находиться сертификаты
+caCertificateValidityPeriod: 87600h0m0s
+certificateValidityPeriod: 8760h0m0s
+clusterName: {{ cluster_name }}                                                             # Доменное имя
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+
+imageRepository: {{ kubeadm_image_repository_default }}
+apiServer:
+  extraArgs:
+    - name: authorization-mode
+      value: Node,RBAC
+    - name: bind-address
+      value: 0.0.0.0
+    - name: service-cluster-ip-range
+      value: {{ cluster_service_network }}                                                    # Сеть для сервисов
+    - name: service-node-port-range
+      value: {{ cluster_pod_network_ports }}                                                  # Порты для сети для сервисов NodePort
+encryptionAlgorithm: RSA-2048
+controlPlaneEndpoint: {{ cluster_control_plane_vip }}:{{ cluster_control_plane_port }}        # Кластерный IP на HAProxy
+
+kubernetesVersion: {{ kubernetes_minor_version }}
+networking:
+
+  serviceSubnet: {{ cluster_service_network }}                                                # Сеть для сервисов
+  podSubnet: {{ cluster_pod_network }}                                                        # Сеть для подов
+
+  dnsDomain: {{ cluster_name }}
+scheduler: {}                                                                                 # kube-scheduler включен по умолчанию
+
+# proxy: {}                                                                                   # kube-proxy включен по умолчанию
+# proxy:
+#   disabled: true                                                                              # disable kube-proxy
+
+{% if enable_kube_proxy %}
+proxy: {}                                                                                     # kube-proxy включен по умолчанию
+{% else %}
+proxy:
+  disabled: true                                                                              # disable kube-proxy
+{% endif %}
+
+# ===================================================================
+#                           KubeletConfiguration
+# ===================================================================
+---
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+serverTLSBootstrap: true
+clusterDomain: {{ cluster_name }}
+clusterDNS:                                                                          # Нужно установить на каждой ноде кластера
+- {{ cluster_dns_server_ip }}                                                        # IP адреса DNS серверов кластера
+systemReserved:
+  memory: 512Mi
+  cpu: 500m
+  ephemeral-storage: 2Gi
+# Default: "10Mi"
+containerLogMaxSize: 1Mi
+# Default: 5
+containerLogMaxFiles: 3

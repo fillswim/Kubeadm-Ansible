@@ -7,19 +7,19 @@ ubuntu_k8s4:
 # Control nodes
 k8s_masters:
   hosts:
-    ubuntu-k8s4-master-1.lab.local:
+    ubuntu-k8s4-master-1.fillswim.local:
       ansible_host: 192.168.2.111
-    # ubuntu-k8s4-master-2.lab.local:
-    #   ansible_host: 192.168.2.112
-    # ubuntu-k8s4-master-3.lab.local:
-    #   ansible_host: 192.168.2.113
+    ubuntu-k8s4-master-2.fillswim.local:
+      ansible_host: 192.168.2.112
+    ubuntu-k8s4-master-3.fillswim.local:
+      ansible_host: 192.168.2.113
 
 # Worker nodes
 k8s_workers:
   hosts:
-    # ubuntu-k8s4-worker-1.lab.local:
-    #   ansible_host: 192.168.2.114
-    # ubuntu-k8s4-worker-2.lab.local:
-    #   ansible_host: 192.168.2.115
-    # ubuntu-k8s4-worker-3.lab.local:
-    #   ansible_host: 192.168.2.116
+    ubuntu-k8s4-worker-1.fillswim.local:
+      ansible_host: 192.168.2.114
+    ubuntu-k8s4-worker-2.fillswim.local:
+      ansible_host: 192.168.2.115
+    ubuntu-k8s4-worker-3.fillswim.local:
+      ansible_host: 192.168.2.116

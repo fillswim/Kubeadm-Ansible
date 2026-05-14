@@ -88,6 +88,10 @@ ansible-playbook -i inventory/Nexus/nexus.yaml Install-Nexus.yaml -b
 
 ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml ping.yaml -b
 ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Role_02-High-Availability.yaml -b
+
+ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Kubeadm_Create-Cluster.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Kubeadm_Reset-Cluster.yaml -b
 
 # ==============================================================================
 #                             Ubuntu K8s4 (CRI-O)
@@ -95,3 +99,8 @@ ansible-playbook -i inventory/Ubuntu-K8s3/ubuntu-k8s3.yaml Role_01-Preparation-K
 
 ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml ping.yaml -b
 ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml Role_02-High-Availability.yaml -b
+
+ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml Kubeadm_Create-Cluster.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s4/ubuntu-k8s4.yaml Kubeadm_Reset-Cluster.yaml -b
+

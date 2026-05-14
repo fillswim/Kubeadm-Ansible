@@ -7,25 +7,25 @@
 #                             Создание кластера K8s
 # =============================================================================
 
-- name: Ping
-  hosts: "all"
-  roles:
-    - role: ping
+# - name: Ping
+#   hosts: "all"
+#   roles:
+#     - role: ping
 
-- name: Добавить ssh-ключи от всех хостов на все хосты
-  hosts: "all"
-  roles:
-    - role: ssh-key-hosts
+# - name: Добавить ssh-ключи от всех хостов на все хосты
+#   hosts: "all"
+#   roles:
+#     - role: ssh-key-hosts
 
-- name: Подготовка VM для K8s
-  hosts: "all"
-  roles:
-    - role: 01-preparation-k8s
+# - name: Подготовка VM для K8s
+#   hosts: "all"
+#   roles:
+#     - role: 01-preparation-k8s
 
-- name: Настройка HAProxy и Keepalived
-  hosts: k8s_masters
-  roles:
-    - role: 02-High-Availability
+# - name: Настройка HAProxy и Keepalived
+#   hosts: k8s_masters
+#   roles:
+#     - role: 02-High-Availability
 
 - name: Инициализация первой мастер-ноды
   hosts: k8s_masters[0]
@@ -49,19 +49,19 @@
   roles:
     - role: 06-Delete-Node
 
-- name: Install Helm
-  hosts: k8s_masters
-  roles:
-    - role: Install-Helm
-
-- name: Install K9s
-  hosts: k8s_masters
-  roles:
-    - role: Install-K9s
-
 # =============================================================================
 #                      Установка дополнительных компонентов
 # =============================================================================
+
+# - name: Install Helm
+#   hosts: k8s_masters
+#   roles:
+#     - role: Install-Helm
+
+# - name: Install K9s
+#   hosts: k8s_masters
+#   roles:
+#     - role: Install-K9s
 
 # - name: Установка calicoctl
 #   hosts: k8s_masters[0]

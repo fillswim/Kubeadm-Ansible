@@ -1,0 +1,91 @@
+# ===================================================================
+#                           InitConfiguration
+# ===================================================================
+kind: InitConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+localAPIEndpoint:
+  advertiseAddress: {{ ansible_facts.default_ipv4.address }}
+  bindPort: {{ node_control_plane_port }}
+nodeRegistration:
+  name: {{ inventory_hostname }}                              # Имя первой control ноды
+
+{% if install_containerd %}
+  criSocket: {{ containerd_cri_socket }}
+{% endif %}
+{% if install_crio %}
+  criSocket: {{ crio_cri_socket }}
+{% endif %}
+
+  imagePullPolicy: IfNotPresent
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+
+# ===================================================================
+#                           ClusterConfiguration
+# ===================================================================
+---
+kind: ClusterConfiguration
+apiVersion: kubeadm.k8s.io/v1beta3
+certificatesDir: /etc/kubernetes/pki                                                            # Где будут находиться сертификаты
+clusterName: {{ cluster_name }}                                                                 # Доменное имя
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: {{ kubeadm_image_repository_default }}
+apiServer:
+  timeoutForControlPlane: 4m0s
+  extraArgs:
+    authorization-mode: Node,RBAC
+    bind-address: 0.0.0.0
+    service-cluster-ip-range: {{ cluster_service_network }}                                     # Сеть для сервисов
+    service-node-port-range: {{ cluster_pod_network_ports }}                                    # Сеть для сервисов NodePort
+kubernetesVersion: {{ kubernetes_minor_version }}
+controlPlaneEndpoint: {{ cluster_control_plane_vip }}:{{ cluster_control_plane_port }}          # Кластерный IP на HAProxy
+networking:
+  dnsDomain: {{ cluster_name }}
+  podSubnet: {{ cluster_pod_network }}                                            # Сеть для подов
+  serviceSubnet: {{ cluster_service_network }}                                    # Сеть для сервисов
+scheduler: {}
+
+# ===================================================================
+#                           KubeProxyConfiguration
+# ===================================================================
+{% if enable_kube_proxy %}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+bindAddress: 0.0.0.0
+clusterCIDR: {{ cluster_pod_network }}                                            # Сеть для подов
+ipvs:
+  strictARP: True
+mode: ipvs
+{% endif %}
+
+# ===================================================================
+#                           KubeletConfiguration
+# ===================================================================
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+serverTLSBootstrap: true
+clusterDomain: {{ cluster_name }}
+clusterDNS:                                                                          # Нужно установить на каждой ноде кластера
+- {{ cluster_dns_server_ip }}                                                        # IP адреса DNS серверов кластера
+systemReserved:
+  memory: 512Mi
+  cpu: 500m
+  ephemeral-storage: 2Gi
+# Default: "10Mi"
+containerLogMaxSize: 1Mi
+# Default: 5
+containerLogMaxFiles: 3

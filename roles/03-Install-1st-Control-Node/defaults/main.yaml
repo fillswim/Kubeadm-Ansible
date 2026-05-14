@@ -1,0 +1,11 @@
+---
+
+kubeadm_temp_folder: "/root/kubeadm"
+
+# CRI Socket
+containerd_cri_socket: "unix:///var/run/containerd/containerd.sock"
+crio_cri_socket: "unix:///var/run/crio/crio.sock"
+
+# Image repository
+kubeadm_image_repository_default: "registry.k8s.io"
+kubeadm_image_repository_altlinux: "registry.altlinux.org/p10"

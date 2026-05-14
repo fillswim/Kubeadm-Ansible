@@ -6,6 +6,10 @@ ansible_user: root
 ansible_ssh_private_key_file: ~/.ssh/id_ed25519
 ansible_python_interpreter: auto_silent
 
+# ##############################################################################
+#                           Role_01-Preparation-K8s.yaml
+# ##############################################################################
+
 # ==============================================================================
 #                                  Image Repository
 # ==============================================================================
@@ -73,3 +77,41 @@ k9s_version: "0.50.18"
 # ==============================================================================
 
 install_packages_for_longhorn: true
+
+
+# ##############################################################################
+#                           Role_02-High-Availability.yaml
+# ##############################################################################
+
+# Node Endpoint
+node_control_plane_port:        6443
+
+# Cluster Endpoint
+cluster_control_plane_vip:      192.168.2.100
+cluster_control_plane_port:     7443
+
+
+# ##############################################################################
+#                           03-Install-1st-Control-Node.yaml
+# ##############################################################################
+
+# Kubernetes Version
+kubernetes_major_version: "1.35"
+kubernetes_minor_version: "1.35.3"
+
+# Cluster Settings
+cluster_name: ubuntu-k8s3
+
+# Kubeadm API Version
+kubeadm_api_version: "v1beta4"
+
+# Network
+cluster_pod_network: "10.244.0.0/16"
+cluster_pod_network_ports: 30000-32767
+cluster_service_network: "10.96.0.0/16"
+
+# DNS
+cluster_dns_server_ip: 10.96.0.10
+
+# KubeProxy (false - если используется Cilium)
+enable_kube_proxy: true
