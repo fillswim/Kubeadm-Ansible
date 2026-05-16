@@ -10,19 +10,19 @@ k8s_masters:
   hosts:
     ubuntu-k8s1-master-pmx-1.lab.local:
       ansible_host: 192.168.42.11
-    # ubuntu-k8s1-master-pmx-2.lab.local:
-    #   ansible_host: 192.168.42.12
-    # ubuntu-k8s1-master-pmx-3.lab.local:
-    #   ansible_host: 192.168.42.13
+    ubuntu-k8s1-master-pmx-2.lab.local:
+      ansible_host: 192.168.42.12
+    ubuntu-k8s1-master-pmx-3.lab.local:
+      ansible_host: 192.168.42.13
 
 # Worker nodes
 k8s_workers:
   hosts:
-    # ubuntu-k8s1-worker-msf-1.lab.local:
-    #   ansible_host: 192.168.42.21
-    # ubuntu-k8s1-worker-msf-2.lab.local:
-    #   ansible_host: 192.168.42.22
-    # ubuntu-k8s1-worker-nuc-1.lab.local:
-    #   ansible_host: 192.168.42.31
-    # ubuntu-k8s1-worker-nuc-2.lab.local:
-    #   ansible_host: 192.168.42.32
+    ubuntu-k8s1-worker-msf-1.lab.local:
+      ansible_host: 192.168.42.21
+    ubuntu-k8s1-worker-msf-2.lab.local:
+      ansible_host: 192.168.42.22
+    ubuntu-k8s1-worker-nuc-1.lab.local:
+      ansible_host: 192.168.42.31
+    ubuntu-k8s1-worker-nuc-2.lab.local:
+      ansible_host: 192.168.42.32

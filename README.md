@@ -70,10 +70,12 @@ ansible-playbook -i inventory/k8s1-altlinux.yaml Reboot.yaml -b
 # ==============================================================================
 
 ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml ping.yaml -b
-<!-- ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml Kubeadm_Create-Cluster.yaml -b -->
 
-ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml ping.yaml -b
 ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml Role_01-Preparation-K8s.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml Role_02-High-Availability.yaml -b
+
+ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml Kubeadm_Create-Cluster.yaml -b
+ansible-playbook -i inventory/Ubuntu-K8s1/ubuntu-k8s1.yaml Kubeadm_Reset-Cluster.yaml -b
 
 # ==============================================================================
 #                                   Nexus
